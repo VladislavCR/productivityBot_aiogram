@@ -3,21 +3,21 @@ from aiogram import types
 
 admin_panel_main_menu = types.InlineKeyboardMarkup()
 
-appoint_admin = types.InlineKeyboardButton(
-    text="Назначить права админа", callback_data="appoint_admin"
+make_user_admin = types.InlineKeyboardButton(
+    text="Назначить права админа", callback_data="make_user_admin"
 )
 add_shop = types.InlineKeyboardButton(
     text="Добавить магазин", callback_data="add_shop"
 )
-remove_admin = types.InlineKeyboardButton(
-    text="Убрать права админа", callback_data="remove_admin"
+delete_role_admin = types.InlineKeyboardButton(
+    text="Убрать права админа", callback_data="delete_role_admin"
 )
 # secret_button = types.InlineKeyboardButton(
 #     text="Секретная кнопка", callback_data="secret"
 # )
 
 
-admin_panel_main_menu.add(appoint_admin, remove_admin).add(add_shop)
+admin_panel_main_menu.add(make_user_admin, delete_role_admin).add(add_shop)
 
 
 director_panel_main_menu = types.InlineKeyboardMarkup()
