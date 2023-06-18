@@ -27,6 +27,21 @@ async def create_admin(id, user_first_name, user_last_name, user_position):
     await conn.close()
 
 
+# Создаем роль директора
+async def create_director(id, user_first_name, user_last_name, user_position):
+    conn = await asyncpg.connect(
+        user=user, password=password, database=database, host=host
+    )
+    await conn.execute('''INSERT INTO user_role(id, user_role, user_first_name, user_last_name, user_position) VALUES($1,$2,$3,$4,$5)''',
+                       id,
+                       'director',
+                       user_first_name,
+                       user_last_name,
+                       user_position,
+                       )
+    await conn.close()
+
+
 # Создаем роль пользователя
 async def create_user(id, user_first_name, user_last_name, user_position):
     conn = await asyncpg.connect(
