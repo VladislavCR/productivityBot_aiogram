@@ -1,7 +1,42 @@
 from aiogram import types
+from aiogram.dispatcher import FSMContext
+
 from config.bot_config import bot, dp
 from keyboards.admin_kb import *
+from keyboards.director_kb import *
 from admin_panel.admin_fsm import *
+from database.user_role.check_user_role import check_bd_user_role
+from database.users.view_users import get_employees
+
+
+@dp.message_handler(commands=['start'])
+async def start_cmd(message: types.Message):
+    user_id = int(message.from_user.id)
+    check_user_role = await check_bd_user_role(id=user_id)
+    # if check_user_role == 'admin':
+    #     await bot.send_message(chat_id=message.from_user.id,
+    #                            text='Привет! Админ',
+    #                            reply_markup=admin_kb_main_menu)
+    # elif check_user_role == 'director':
+    await bot.send_message(chat_id=message.from_user.id,
+                               text='Привет! Директор',
+                               reply_markup=director_kb_main_menu)
+    # else:
+    #     await bot.send_message(chat_id=message.from_user.id,
+    #                            text='Привет! Сотрудник',
+    #                            reply_markup=staff_kb_main_menu)
+
+
+@dp.message_handler(commands=["cancel"], state="*")
+async def cancel_cmd(message: types.Message, state: FSMContext):
+    curr_state = await state.get_state()
+    if curr_state is None:
+        return
+    await state.finish()
+    await bot.delete_message(chat_id=message.from_user.id,
+                             message_id=message.message_id)
+    await message.reply('Вы прервали операцию',
+                        reply_markup=admin_kb_main_menu)
 
 
 @dp.callback_query_handler(text="add_shop")
@@ -18,7 +53,7 @@ async def new_shop_cr(callback_query: types.CallbackQuery):
     await bot.delete_message(chat_id=callback_query.from_user.id,
                              message_id=callback_query.message.message_id)
     await bot.send_message(chat_id=callback_query.from_user.id,
-                           text='Выбери бренд!',
+                           text='Добавить магазин в бренд CR!',
                            reply_markup=admin_kb_cr)
 
 
@@ -27,7 +62,7 @@ async def new_shop_sin(callback_query: types.CallbackQuery):
     await bot.delete_message(chat_id=callback_query.from_user.id,
                              message_id=callback_query.message.message_id)
     await bot.send_message(chat_id=callback_query.from_user.id,
-                           text='Выбери бренд!',
+                           text='Добавить магазин в бренд SIN!',
                            reply_markup=admin_kb_sin)
 
 
@@ -36,7 +71,7 @@ async def new_shop_re(callback_query: types.CallbackQuery):
     await bot.delete_message(chat_id=callback_query.from_user.id,
                              message_id=callback_query.message.message_id)
     await bot.send_message(chat_id=callback_query.from_user.id,
-                           text='Выбери бренд!',
+                           text='Добавить магазин в бренд RE!',
                            reply_markup=admin_kb_re)
 
 
@@ -45,7 +80,7 @@ async def new_shop_mo(callback_query: types.CallbackQuery):
     await bot.delete_message(chat_id=callback_query.from_user.id,
                              message_id=callback_query.message.message_id)
     await bot.send_message(chat_id=callback_query.from_user.id,
-                           text='Выбери бренд!',
+                           text='Добавить магазин в бренд MO!',
                            reply_markup=admin_kb_mo)
 
 
@@ -54,5 +89,33 @@ async def new_shop_xc(callback_query: types.CallbackQuery):
     await bot.delete_message(chat_id=callback_query.from_user.id,
                              message_id=callback_query.message.message_id)
     await bot.send_message(chat_id=callback_query.from_user.id,
-                           text='Выбери бренд!',
+                           text='Добавить магазин в бренд!',
                            reply_markup=admin_kb_xc)
+
+
+@dp.callback_query_handler(text="view_list")
+async def view_list(callback_query: types.CallbackQuery):
+    employees = await get_employees()
+    for employee in employees:
+        id = employee['id']
+        first_name = employee['user_first_name']
+        last_name = employee['user_last_name']
+        user_position = employee['user_position']
+        await bot.send_message(chat_id=callback_query.from_user.id,
+                            text=f"ID сотрудника: {id}\n" 
+                            f"\nФИО: {first_name} {last_name}\n"
+                            f"\nДолжность: {user_position}")
+    await bot.delete_message(chat_id=callback_query.from_user.id,
+                             message_id=callback_query.message.message_id)
+    await bot.send_message(chat_id=callback_query.from_user.id,
+                           text="Главное меню!",
+                           reply_markup=director_kb_main_menu)
+
+
+@dp.callback_query_handler(text="go_back_main_menu")
+async def view_users(callback_query: types.CallbackQuery):
+    await bot.delete_message(chat_id=callback_query.from_user.id,
+                             message_id=callback_query.message.message_id)
+    await bot.send_message(chat_id=callback_query.from_user.id,
+                           text="Главное меню!",
+                           reply_markup=admin_kb_main_menu)
