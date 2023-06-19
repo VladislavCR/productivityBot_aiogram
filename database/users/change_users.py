@@ -11,18 +11,12 @@ DB = config['database']
 HOST = config['host']
 
 
-async def change_users_bd(id,
-                          user_role,
-                          user_first_name,
-                          user_last_name,
-                          user_position):
+async def change_users_bd(user_id,
+                          user_role):
     conn = await asyncpg.connect(user=USER,
                                  password=PSWD,
                                  database=DB,
                                  host=HOST)
-    await conn.execute(f"UPDATE user_role SET user_role=$1, user_first_name=$2, user_last_name=$3 WHERE id=$4",
-                       user_role,
-                       user_first_name,
-                       user_last_name,
-                       user_position)
+    await conn.execute("UPDATE users_role SET user_role=$1 WHERE id=$2",
+                       user_role)
     await conn.close()

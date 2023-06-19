@@ -13,54 +13,42 @@ host = str(config['host'])
 
 
 # Создаем роль администратора
-async def create_admin(id, user_first_name, user_last_name, user_position):
+async def create_admin(user_id):
     conn = await asyncpg.connect(
         user=user, password=password, database=database, host=host
     )
-    await conn.execute('''INSERT INTO user_role(id, user_role, user_first_name, user_last_name, user_position) VALUES($1,$2,$3,$4,$5)''',
-                       id,
-                       'admin',
-                       user_first_name,
-                       user_last_name,
-                       user_position,
-                       )
+    await conn.execute('''INSERT INTO users_role(user_id, user_role) VALUES($1,$2)''',
+                       user_id,
+                       'admin')
     await conn.close()
 
 
 # Создаем роль директора
-async def create_director(id, user_first_name, user_last_name, user_position):
+async def create_director(user_id):
     conn = await asyncpg.connect(
         user=user, password=password, database=database, host=host
     )
-    await conn.execute('''INSERT INTO user_role(id, user_role, user_first_name, user_last_name, user_position) VALUES($1,$2,$3,$4,$5)''',
-                       id,
-                       'director',
-                       user_first_name,
-                       user_last_name,
-                       user_position,
-                       )
+    await conn.execute('''INSERT INTO users_role(user_id, user_role) VALUES($1,$2)''',
+                       user_id,
+                       'director',)
     await conn.close()
 
 
 # Создаем роль пользователя
-async def create_user(id, user_first_name, user_last_name, user_position):
+async def create_user(user_id):
     conn = await asyncpg.connect(
         user=user, password=password, database=database, host=host
     )
-    await conn.execute('''INSERT INTO user_role(id, user_role, user_first_name, user_last_name, user_position) VALUES($1,$2,$3,$4,$5)''',
-                       id,
-                       'user',
-                       user_first_name,
-                       user_last_name,
-                       user_position,
-                       )
+    await conn.execute('''INSERT INTO users_role(user_id, user_role) VALUES($1,$2)''',
+                       user_id,
+                       'user')
     await conn.close()
 
 
 # Удаляем любую роль пользователя
-async def delete_user(id):
+async def delete_user(user_id):
     conn = await asyncpg.connect(
         user=user, password=password, database=database, host=host
     )
-    await conn.execute('''DELETE FROM user_role WHERE id = $1''', id)
+    await conn.execute('''DELETE FROM users_role WHERE user_id = $1''', user_id)
     await conn.close()
