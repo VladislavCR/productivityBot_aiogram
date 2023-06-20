@@ -12,12 +12,12 @@ DB = config['database']
 HOST = config['host']
 
 
-async def get_employees():
+async def get_shops():
     conn = await asyncpg.connect(
         user=USER, password=PSWD, database=DB, host=HOST
     )
     rows = await conn.fetch(
-        'SELECT id, user_first_name,user_last_name, user_position FROM users_role'
+        'SELECT shop_id, shop_number, brand, city FROM shops'
     )
     await conn.close()
     if rows is None:

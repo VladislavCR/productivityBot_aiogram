@@ -75,7 +75,7 @@ go_back_main_menu = types.InlineKeyboardButton(
     text="Вернуться в главное меню", callback_data="go_back_main_menu"
 )
 
-admin_kb_cr.row(add_shop, remove_shop, go_back_main_menu)
+admin_kb_cr.add(add_shop).add(remove_shop).add(go_back_main_menu)
 
 admin_kb_sin = types.InlineKeyboardMarkup()
 add_shop = types.InlineKeyboardButton(
@@ -88,7 +88,7 @@ go_back_main_menu = types.InlineKeyboardButton(
     text="Вернуться в главное меню", callback_data="go_back_main_menu"
 )
 
-admin_kb_sin.row(add_shop, remove_staff, go_back_main_menu)
+admin_kb_sin.add(add_shop).add(remove_staff).add(go_back_main_menu)
 
 
 admin_kb_re = types.InlineKeyboardMarkup()
@@ -102,7 +102,7 @@ go_back_main_menu = types.InlineKeyboardButton(
     text="Вернуться в главное меню", callback_data="go_back_main_menu"
 )
 
-admin_kb_re.row(add_shop, remove_staff, go_back_main_menu)
+admin_kb_re.add(add_shop).add(remove_staff).add(go_back_main_menu)
 
 
 admin_kb_mo = types.InlineKeyboardMarkup()
@@ -116,7 +116,7 @@ go_back_main_menu = types.InlineKeyboardButton(
     text="Вернуться в главное меню", callback_data="go_back_main_menu"
 )
 
-admin_kb_mo.row(add_shop, remove_staff, go_back_main_menu)
+admin_kb_mo.add(add_shop).add(remove_staff).add(go_back_main_menu)
 
 
 admin_kb_xc = types.InlineKeyboardMarkup()
@@ -130,4 +130,4 @@ go_back_main_menu = types.InlineKeyboardButton(
     text="Вернуться в главное меню", callback_data="go_back_main_menu"
 )
 
-admin_kb_xc.row(add_shop, remove_staff, go_back_main_menu)
+admin_kb_xc.add(add_shop).add(remove_staff).add(go_back_main_menu)
