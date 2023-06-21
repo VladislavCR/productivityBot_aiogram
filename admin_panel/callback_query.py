@@ -28,10 +28,11 @@ async def start_cmd(message: types.Message):
         await bot.send_message(chat_id=message.from_user.id,
                                text='Привет! Директор',
                                reply_markup=director_kb_main_menu)
-    elif check_user_role == 'None':
+    elif check_user_role == 'employee':
         await bot.send_message(chat_id=message.from_user.id,
                                text=f"Добро пожаловать, "
-                               f"{message.from_user.username}",
+                               f"{message.from_user.first_name} "
+                               f"{message.from_user.last_name}",
                                reply_markup=employee_registed_kb)
     else:
         await bot.send_message(chat_id=message.from_user.id,

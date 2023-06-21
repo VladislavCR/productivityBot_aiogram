@@ -41,7 +41,7 @@ async def create_user(user_id):
     )
     await conn.execute('''INSERT INTO users_role(user_id, user_role) VALUES($1,$2)''',
                        user_id,
-                       'user')
+                       'employee')
     await conn.close()
 
 

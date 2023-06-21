@@ -9,6 +9,7 @@ from keyboards.employee_kb import (employee_kb_registration,
 from keyboards.reply_kb import choice_position_kb
 from database.users.create_user import create_user_bd
 from database.shops.check_shop import check_shop
+from database.user_role.create_role import create_user
 
 
 class FSM_create_new_user(StatesGroup):
@@ -106,6 +107,7 @@ async def choice_shop(message: types.Message, state: FSMContext):
                                              last_name=data['last_name'],
                                              user_position=data['user_position'],
                                              shop_id=data['shop_id'])
+                        await create_user(user_id=message.from_user.id)
                         await bot.send_message(chat_id=message.from_user.id,
                                                text=f"\nВы зарегистрированы\n"
                                                f"ID пользователя:  {message.from_user.id}\n"
