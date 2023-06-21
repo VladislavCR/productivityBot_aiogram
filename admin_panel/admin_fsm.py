@@ -3,10 +3,10 @@ from config.bot_config import dp, bot
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
-from keyboards.admin_kb import *
-from database.user_role.check_user_role import check_bd_user_role, check_user
+from keyboards.admin_kb import admin_kb_add_rights, admin_kb_main_menu
+from database.user_role.check_role import check_bd_user_role, check_user
 from database.user_role.create_role import create_admin, create_director
-from database.users.delete_users import delete_user
+from database.users.delete_user import delete_user
 
 
 @dp.callback_query_handler(text="add_rights", state=None)
@@ -28,13 +28,14 @@ async def load_user_role_admin(callback_query: types.CallbackQuery):
     await bot.delete_message(chat_id=callback_query.from_user.id,
                              message_id=callback_query.message.message_id)
     await bot.send_message(chat_id=callback_query.from_user.id,
-                           text=f"Роль успешно выбрана.\n"
-                           f"\nВведите user_id пользователя,"
-                           f"которого хотите назначить администратором:")
+                           text="Роль успешно выбрана.\n"
+                           "\nВведите user_id пользователя,"
+                           "которого хотите назначить администратором:")
 
 
 @dp.message_handler(state=FSM_create_user_role_admin.user_id)
-async def load_user_id(message: types.Message, state: FSMContext):
+async def load_user_id_admin(message: types.Message, state: FSMContext):
+    print(message.text)
     try:
         float(message.text)
         test_check_user = await check_user(user_id=int(message.text))
@@ -43,27 +44,27 @@ async def load_user_id(message: types.Message, state: FSMContext):
             if test == 'admin':
                 await state.finish()
                 await bot.send_message(chat_id=message.from_user.id,
-                                text=f"\nОшибка ID пользователя уже используется"
-                                f"\nЭто Админ\n"
-                                f"\nID пользователя:  {message.text}\n"
-                                f"\nПопробуйте снова",
-                                reply_markup=admin_kb_main_menu)
+                                       text=f"\nОшибка ID пользователя уже используется"
+                                       f"\nЭто Админ\n"
+                                       f"\nID пользователя:  {message.text}\n"
+                                       f"\nПопробуйте снова",
+                                       reply_markup=admin_kb_main_menu)
             elif test == 'director':
                 await state.finish()
                 await bot.send_message(chat_id=message.from_user.id,
-                                text=f"\nОшибка ID пользователя уже используется"
-                                f"\nЭто Директор\n"
-                                f"\nID пользователя:  {message.text}\n"
-                                f"\nПопробуйте снова",
-                                reply_markup=admin_kb_main_menu)
+                                       text=f"\nОшибка ID пользователя уже используется"
+                                       f"\nЭто Директор\n"
+                                       f"\nID пользователя:  {message.text}\n"
+                                       f"\nПопробуйте снова",
+                                       reply_markup=admin_kb_main_menu)
             elif test == 'staff':
                 await state.finish()
                 await bot.send_message(chat_id=message.from_user.id,
-                                text=f"\nОшибка ID пользователя уже используется"
-                                f"\nЭто Продавец\n"
-                                f"\nID пользователя:  {message.text}\n"
-                                f"\nПопробуйте снова",
-                                reply_markup=admin_kb_main_menu)
+                                       text=f"\nОшибка ID пользователя уже используется"
+                                       f"\nЭто Продавец\n"
+                                       f"\nID пользователя:  {message.text}\n"
+                                       f"\nПопробуйте снова",
+                                       reply_markup=admin_kb_main_menu)
             else:
                 async with state.proxy() as data:
                     data['user_id'] = message.text
@@ -72,22 +73,22 @@ async def load_user_id(message: types.Message, state: FSMContext):
                     await state.finish()
                     await create_admin(user_id=int_data)
                     await bot.send_message(chat_id=message.from_user.id,
-                                        text=f"\nАдминистратор\n"
-                                        f"ID пользователя:  {int_data}\n",
-                                        reply_markup=admin_kb_main_menu)
+                                           text=f"\nАдминистратор\n"
+                                           f"ID пользователя:  {int_data}\n",
+                                           reply_markup=admin_kb_main_menu)
         else:
             await state.finish()
             await bot.send_message(chat_id=message.from_user.id,
-                                            text=f"Сотрдуник с ID {message.text} не существует\n"
-                                            f"Создайте сотрудника в базе данных",
-                                            reply_markup=admin_kb_main_menu)  # Поменять клавиатуру на директорскую
+                                   text=f"Сотрдуник с ID {message.text} не существует\n"
+                                   f"Создайте сотрудника в базе данных",
+                                   reply_markup=admin_kb_main_menu)  # Поменять клавиатуру на директорскую
     except ValueError:
         await state.finish()
         await bot.send_message(chat_id=message.from_user.id,
-                                       text=f"\nОшибка ID пользователя (Это не число)\n"
-                                       f"ID пользователя:  {message.text}\n"
-                                       f"\nПопробуйте снова",
-                                       reply_markup=admin_kb_main_menu)
+                               text=f"\nОшибка ID пользователя (Это не число)\n"
+                               f"ID пользователя:  {message.text}\n"
+                               f"\nПопробуйте снова",
+                               reply_markup=admin_kb_main_menu)
 
 
 class FSM_create_user_role_director(StatesGroup):
@@ -100,13 +101,13 @@ async def load_user_role_director(callback_query: types.CallbackQuery):
     await bot.delete_message(chat_id=callback_query.from_user.id,
                              message_id=callback_query.message.message_id)
     await bot.send_message(chat_id=callback_query.from_user.id,
-                           text=f"Роль успешно выбрана.\n"
-                           f"\nВведите user_id пользователя,"
-                           f"которого хотите назначить директором:")
+                           text="Роль успешно выбрана.\n"
+                           "\nВведите user_id пользователя,"
+                           "которого хотите назначить директором:")
 
 
 @dp.message_handler(state=FSM_create_user_role_director.user_id)
-async def load_user_id(message: types.Message, state: FSMContext):
+async def load_user_id_director(message: types.Message, state: FSMContext):
     try:
         float(message.text)
         test_check_user = await check_user(user_id=int(message.text))
@@ -115,27 +116,27 @@ async def load_user_id(message: types.Message, state: FSMContext):
             if test == 'admin':
                 await state.finish()
                 await bot.send_message(chat_id=message.from_user.id,
-                                text=f"\nОшибка ID пользователя уже используется"
-                                f"\nЭто Админ\n"
-                                f"\nID пользователя:  {message.text}\n"
-                                f"\nПопробуйте снова",
-                                reply_markup=admin_kb_main_menu)
+                                       text=f"\nОшибка ID пользователя уже используется"
+                                       f"\nЭто Админ\n"
+                                       f"\nID пользователя:  {message.text}\n"
+                                       f"\nПопробуйте снова",
+                                       reply_markup=admin_kb_main_menu)
             elif test == 'director':
                 await state.finish()
                 await bot.send_message(chat_id=message.from_user.id,
-                                text=f"\nОшибка ID пользователя уже используется"
-                                f"\nЭто Директор\n"
-                                f"\nID пользователя:  {message.text}\n"
-                                f"\nПопробуйте снова",
-                                reply_markup=admin_kb_main_menu)
+                                       text=f"\nОшибка ID пользователя уже используется"
+                                       f"\nЭто Директор\n"
+                                       f"\nID пользователя:  {message.text}\n"
+                                       f"\nПопробуйте снова",
+                                       reply_markup=admin_kb_main_menu)
             elif test == 'staff':
                 await state.finish()
                 await bot.send_message(chat_id=message.from_user.id,
-                                text=f"\nОшибка ID пользователя уже используется"
-                                f"\nЭто Продавец\n"
-                                f"\nID пользователя:  {message.text}\n"
-                                f"\nПопробуйте снова",
-                                reply_markup=admin_kb_main_menu)
+                                       text=f"\nОшибка ID пользователя уже используется"
+                                       f"\nЭто Продавец\n"
+                                       f"\nID пользователя:  {message.text}\n"
+                                       f"\nПопробуйте снова",
+                                       reply_markup=admin_kb_main_menu)
             else:
                 async with state.proxy() as data:
                     data['id'] = message.text
@@ -144,10 +145,10 @@ async def load_user_id(message: types.Message, state: FSMContext):
                     if int_data < 0:
                         await state.finish()
                         await bot.send_message(chat_id=message.from_user.id,
-                                            text=f"\nОшибка ID пользователя не может быть отрицательным\n"
-                                            f"ID пользователя:  {str_data}\n"
-                                            f"\nПопробуйте снова",
-                                            reply_markup=admin_kb_main_menu)
+                                               text=f"\nОшибка ID пользователя не может быть отрицательным\n"
+                                               f"ID пользователя:  {str_data}\n"
+                                               f"\nПопробуйте снова",
+                                               reply_markup=admin_kb_main_menu)
                     else:
                         async with state.proxy() as data:
                             data['user_id'] = message.text
@@ -156,22 +157,22 @@ async def load_user_id(message: types.Message, state: FSMContext):
                             await state.finish()
                             await create_director(user_id=int_data)
                             await bot.send_message(chat_id=message.from_user.id,
-                                                text=f"\nАдминистратор\n"
-                                                f"ID пользователя:  {int_data}\n",
-                                                reply_markup=admin_kb_main_menu)
+                                                   text=f"\nАдминистратор\n"
+                                                   f"ID пользователя:  {int_data}\n",
+                                                   reply_markup=admin_kb_main_menu)
         else:
             await state.finish()
             await bot.send_message(chat_id=message.from_user.id,
-                                            text=f"Сотрдуник с ID {message.text} не существует\n"
-                                            f"Создайте сотрудника в базе данных",
-                                            reply_markup=admin_kb_main_menu)  # Поменять клавиатуру на директорскую
+                                   text=f"Сотрдуник с ID {message.text} не существует\n"
+                                   f"Создайте сотрудника в базе данных",
+                                   reply_markup=admin_kb_main_menu)  # Поменять клавиатуру на директорскую
     except ValueError:
         await state.finish()
         await bot.send_message(chat_id=message.from_user.id,
-                                       text=f"\nОшибка ID пользователя (Это не число)\n"
-                                       f"ID пользователя:  {message.text}\n"
-                                       f"\nПопробуйте снова",
-                                       reply_markup=admin_kb_main_menu)
+                               text=f"\nОшибка ID пользователя (Это не число)\n"
+                               f"ID пользователя:  {message.text}\n"
+                               f"\nПопробуйте снова",
+                               reply_markup=admin_kb_main_menu)
 
 
 class FSM_delete_user_role(StatesGroup):

@@ -2,10 +2,17 @@ from aiogram import types
 from aiogram.dispatcher import FSMContext
 
 from config.bot_config import bot, dp
-from keyboards.admin_kb import *
-from keyboards.director_kb import *
-from admin_panel.admin_fsm import *
-from database.user_role.check_user_role import check_bd_user_role
+from keyboards.admin_kb import (admin_kb_main_menu,
+                                admin_kb_add_shop,
+                                admin_kb_cr,
+                                admin_kb_mo,
+                                admin_kb_sin,
+                                admin_kb_re,
+                                admin_kb_xc)
+from keyboards.director_kb import director_kb_main_menu
+from keyboards.employee_kb import (employee_kb_registration,
+                                   employee_registed_kb)
+from database.user_role.check_role import check_bd_user_role
 from database.users.view_users import get_employees
 
 
@@ -19,12 +26,17 @@ async def start_cmd(message: types.Message):
                                reply_markup=admin_kb_main_menu)
     elif check_user_role == 'director':
         await bot.send_message(chat_id=message.from_user.id,
-                                text='Привет! Директор',
-                                reply_markup=director_kb_main_menu)
+                               text='Привет! Директор',
+                               reply_markup=director_kb_main_menu)
+    elif check_user_role == 'None':
+        await bot.send_message(chat_id=message.from_user.id,
+                               text=f"Добро пожаловать, "
+                               f"{message.from_user.username}",
+                               reply_markup=employee_registed_kb)
     else:
         await bot.send_message(chat_id=message.from_user.id,
-                               text='Привет! Сотрудник',
-                               reply_markup=staff_kb_main_menu)
+                               text='Добро пожаловать! Давай зарегистрируемся',
+                               reply_markup=employee_kb_registration)
 
 
 @dp.message_handler(commands=["cancel"], state="*")
@@ -102,9 +114,9 @@ async def view_list(callback_query: types.CallbackQuery):
         last_name = employee['user_last_name']
         user_position = employee['user_position']
         await bot.send_message(chat_id=callback_query.from_user.id,
-                            text=f"ID сотрудника: {id}\n" 
-                            f"\nФИО: {first_name} {last_name}\n"
-                            f"\nДолжность: {user_position}")
+                               text=f"ID сотрудника: {id}\n"
+                               f"\nФИО: {first_name} {last_name}\n"
+                               f"\nДолжность: {user_position}")
     await bot.delete_message(chat_id=callback_query.from_user.id,
                              message_id=callback_query.message.message_id)
     await bot.send_message(chat_id=callback_query.from_user.id,
