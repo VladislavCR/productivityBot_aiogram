@@ -102,30 +102,36 @@ async def choice_shop(message: types.Message, state: FSMContext):
                     async with state.proxy() as data:
                         data['shop_id'] = int(message.text)
                         await state.finish()
-                        await create_user_bd(user_id=message.from_user.id,
-                                             first_name=data['first_name'],
-                                             last_name=data['last_name'],
-                                             user_position=data['user_position'],
-                                             shop_id=data['shop_id'])
+                        await create_user_bd(
+                            user_id=message.from_user.id,
+                            first_name=data['first_name'],
+                            last_name=data['last_name'],
+                            user_position=data['user_position'],
+                            shop_id=data['shop_id'])
                         await create_user(user_id=message.from_user.id)
-                        await bot.send_message(chat_id=message.from_user.id,
-                                               text=f"\nВы зарегистрированы\n"
-                                               f"ID пользователя:  {message.from_user.id}\n"
-                                               f"ФИО пользователя:  {data['first_name']} {data['last_name']}\n"
-                                               f"Должность пользователя:  {data['user_position']}\n"
-                                               f"Ваш магазин: {data['shop_id']}",
-                                               reply_markup=employee_registed_kb)
+                        await bot.send_message(
+                            chat_id=message.from_user.id,
+                            text=f"\nВы зарегистрированы\n"
+                            f"ID пользователя:  {message.from_user.id}\n"
+                            f"ФИО пользователя:  {data['first_name']}"
+                            f"{data['last_name']}\n"
+                            f"Должность пользователя: "
+                            f"{data['user_position']}\n"
+                            f"Ваш магазин: {data['shop_id']}",
+                            reply_markup=employee_registed_kb)
                 else:
                     await state.finish()
-                    await bot.send_message(chat_id=message.from_user.id,
-                                           text=f"\nОшибка, такого номера магазина нет в базе\n"
-                                           f"Номер магазина:  {message.text}\n"
-                                           f"\nПопробуйте ещё раз",
-                                           reply_markup=employee_kb_registration)
+                    await bot.send_message(
+                        chat_id=message.from_user.id,
+                        text=f"\nОшибка, такого номера магазина нет в базе\n"
+                        f"Номер магазина:  {message.text}\n"
+                        f"\nПопробуйте ещё раз",
+                        reply_markup=employee_kb_registration)
             except ValueError:
                 await state.finish()
-                await bot.send_message(chat_id=message.from_user.id,
-                                       text=f"\nОшибка ID пользователя (Это не число)\n"
-                                       f"ID пользователя:  {message.text}\n"
-                                       f"\nПопробуйте снова",
-                                       reply_markup=employee_kb_registration)
+                await bot.send_message(
+                    chat_id=message.from_user.id,
+                    text=f"\nОшибка ID пользователя (Это не число)\n"
+                    f"ID пользователя:  {message.text}\n"
+                    f"\nПопробуйте снова",
+                    reply_markup=employee_kb_registration)

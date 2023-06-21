@@ -13,17 +13,18 @@ from keyboards.director_kb import director_kb_main_menu
 from keyboards.employee_kb import (employee_kb_registration,
                                    employee_registed_kb)
 from database.user_role.check_role import check_bd_user_role
-from database.users.view_users import get_employees
 
 
 @dp.message_handler(commands=['start'])
 async def start_cmd(message: types.Message):
     user_id = int(message.from_user.id)
     check_user_role = await check_bd_user_role(user_id=user_id)
+    await bot.delete_message(chat_id=message.from_user.id,
+                             message_id=message.message_id)
     if check_user_role == 'admin':
         await bot.send_message(chat_id=message.from_user.id,
                                text='Привет! Админ',
-                               reply_markup=admin_kb_main_menu)
+                               reply_markup=director_kb_main_menu)
     elif check_user_role == 'director':
         await bot.send_message(chat_id=message.from_user.id,
                                text='Привет! Директор',
@@ -104,25 +105,6 @@ async def new_shop_xc(callback_query: types.CallbackQuery):
     await bot.send_message(chat_id=callback_query.from_user.id,
                            text='Добавить магазин в бренд!',
                            reply_markup=admin_kb_xc)
-
-
-@dp.callback_query_handler(text="view_list")
-async def view_list(callback_query: types.CallbackQuery):
-    employees = await get_employees()
-    for employee in employees:
-        id = employee['id']
-        first_name = employee['user_first_name']
-        last_name = employee['user_last_name']
-        user_position = employee['user_position']
-        await bot.send_message(chat_id=callback_query.from_user.id,
-                               text=f"ID сотрудника: {id}\n"
-                               f"\nФИО: {first_name} {last_name}\n"
-                               f"\nДолжность: {user_position}")
-    await bot.delete_message(chat_id=callback_query.from_user.id,
-                             message_id=callback_query.message.message_id)
-    await bot.send_message(chat_id=callback_query.from_user.id,
-                           text="Главное меню!",
-                           reply_markup=director_kb_main_menu)
 
 
 @dp.callback_query_handler(text="go_back_main_menu")

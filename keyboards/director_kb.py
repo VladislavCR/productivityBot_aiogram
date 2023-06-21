@@ -9,7 +9,7 @@ add_staff = types.InlineKeyboardButton(
     text="Добавить сотрудника", callback_data="add_staff"
 )
 remove_staff = types.InlineKeyboardButton(
-    text="Убрать сотрудника", callback_data="remove_staff"
+    text="Удалить сотрудника", callback_data="remove_staff"
 )
 raiting_of_store = types.InlineKeyboardButton(
     text="Просмотреть общий рейтинг магазина", callback_data="raiting_of_store"
