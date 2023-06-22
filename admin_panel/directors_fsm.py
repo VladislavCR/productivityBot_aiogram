@@ -91,8 +91,9 @@ async def analysis_of_delivery(callback_query: types.CallbackQuery):
     print(list_employees)
     director_kb_view_employees = types.InlineKeyboardMarkup(row_width=2)
     for i in list_employees:
-        print(i)
         director_kb_view_employees.add(
-            types.InlineKeyboardButton(text=f"{i[1]}", callback_data=f"{i[1]}")
+            types.InlineKeyboardButton(text=f"{i['first_name']} {i['last_name']}", callback_data=f"{i['user_id']}")
         )
-{'user_id': 1632304534, 'first_name': 'Б', 'last_name': 'Г', 'user_position': 'Администратор'}
+    await bot.send_message(chat_id=callback_query.from_user.id,
+                           text="Выберите нужных сотрудников для подсчета",
+                           reply_markup=director_kb_view_employees)
