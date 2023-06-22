@@ -4,6 +4,7 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
 from keyboards.admin_kb import admin_kb_add_rights, admin_kb_main_menu
+from keyboards.director_kb import director_kb_main_menu
 from database.user_role.check_role import check_bd_user_role, check_user
 from database.user_role.create_role import create_admin, create_director
 from database.users.delete_user import delete_user
@@ -35,7 +36,6 @@ async def load_user_role_admin(callback_query: types.CallbackQuery):
 
 @dp.message_handler(state=FSM_create_user_role_admin.user_id)
 async def load_user_id_admin(message: types.Message, state: FSMContext):
-    print(message.text)
     try:
         float(message.text)
         test_check_user = await check_user(user_id=int(message.text))
@@ -78,7 +78,7 @@ async def load_user_id_admin(message: types.Message, state: FSMContext):
                 text=f"Сотрдуник с ID "
                 f"{message.text} не существует\n"
                 f"Создайте сотрудника в базе данных",
-                reply_markup=admin_kb_main_menu)  # Поменять клавиатуру на директорскую
+                reply_markup=director_kb_main_menu)
     except ValueError:
         await state.finish()
         await bot.send_message(chat_id=message.from_user.id,
@@ -161,7 +161,7 @@ async def load_user_id_director(message: types.Message, state: FSMContext):
                 text=f"Сотрдуник с ID {message.text}"
                 " не существует\n"
                 f"Создайте сотрудника в базе данных",
-                reply_markup=admin_kb_main_menu)  # Поменять клавиатуру на директорскую
+                reply_markup=director_kb_main_menu)
     except ValueError:
         await state.finish()
         await bot.send_message(chat_id=message.from_user.id,

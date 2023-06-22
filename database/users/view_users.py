@@ -25,3 +25,15 @@ async def get_employees(shop_id):
         return 'None'
     else:
         return [dict(row) for row in rows]
+
+
+async def get_shop(user_id):
+    conn = await asyncpg.connect(
+        user=USER, password=PSWD, database=DB, host=HOST
+    )
+    row = await conn.fetch(
+        'SELECT shop_id FROM users where user_id = $1', user_id
+    )
+    await conn.close()
+
+    return row[0]
