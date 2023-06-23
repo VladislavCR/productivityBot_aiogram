@@ -88,12 +88,15 @@ async def analysis_of_delivery(callback_query: types.CallbackQuery):
     user_id = callback_query.from_user.id
     shop_id = await get_shop(user_id=user_id)
     list_employees = await get_employees(shop_id=shop_id[0])
-    print(list_employees)
-    director_kb_view_employees = types.InlineKeyboardMarkup(row_width=2)
+    director_kb_view_employees = types.InlineKeyboardMarkup(row_width=1)
     for i in list_employees:
         director_kb_view_employees.add(
-            types.InlineKeyboardButton(text=f"{i['first_name']} {i['last_name']}", callback_data=f"{i['user_id']}")
+            types.InlineKeyboardButton(
+                text=f"{i['first_name']} {i['last_name']}",
+                callback_data=f"{i['user_id']}")
         )
+    await bot.delete_message(chat_id=callback_query.from_user.id,
+                             message_id=callback_query.message.message_id)
     await bot.send_message(chat_id=callback_query.from_user.id,
                            text="Выберите нужных сотрудников для подсчета",
                            reply_markup=director_kb_view_employees)

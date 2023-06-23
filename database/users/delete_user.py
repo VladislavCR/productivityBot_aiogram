@@ -16,5 +16,5 @@ async def delete_user(user_id):
                                  password=PSWD,
                                  database=DB,
                                  host=HOST)
-    await conn.execute('''DELETE FROM users WHERE user_id=$1''', user_id)
+    await conn.execute('DELETE FROM users WHERE user_id=$1', user_id)
     await conn.close()

@@ -16,6 +16,6 @@ async def change_user_bd(user_id, user_role):
                                  password=PSWD,
                                  database=DB,
                                  host=HOST)
-    await conn.execute("UPDATE users_role SET user_role=$1 WHERE id=$2",
+    await conn.execute('UPDATE users_role SET user_role=$1 WHERE id=$2',
                        user_id, user_role)
     await conn.close()

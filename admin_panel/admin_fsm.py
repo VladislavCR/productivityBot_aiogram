@@ -3,11 +3,12 @@ from config.bot_config import dp, bot
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
-from keyboards.admin_kb import admin_kb_add_rights, admin_kb_main_menu
+from keyboards.admin_kb import admin_kb_add_rights, admin_kb_main_menu, admin_kb_cr
 from keyboards.director_kb import director_kb_main_menu
 from database.user_role.check_role import check_bd_user_role, check_user
 from database.user_role.create_role import create_admin, create_director
 from database.users.delete_user import delete_user
+from database.shops.check_shop import check_shop
 
 
 @dp.callback_query_handler(text="add_rights", state=None)
@@ -205,3 +206,35 @@ async def delete_user_role(message: types.Message, state: FSMContext):
                                    "Ошибка. Нет такого ID пользователя\n"
                                    "\nПопробуйте ещё раз",
                                    reply_markup=admin_kb_main_menu)
+
+
+class FSM_create_shop(StatesGroup):
+    shop_id = State()
+    city = State()
+
+
+@dp.callback_query_handler(text="add_shop_cr", state=None)
+async def add_shop_cr(callback_query: types.CallbackQuery):
+    await FSM_create_shop.shop_id.set()
+    await bot.delete_message(chat_id=callback_query.from_user.id,
+                             message_id=callback_query.message.message_id)
+    await bot.send_message(chat_id=callback_query.from_user.id,
+                           text="Бренд CR, `\nВведите номер магазина \n")
+
+
+@dp.message_handler(state=FSM_create_shop.shop_id)
+async def load_shop_id_admin(message: types.Message, state: FSMContext):
+    try:
+        test_check_shop_id = await check_shop(shop_number=int(message.text))
+        if test_check_shop_id:
+            await state.finish()
+            await bot.send_message(
+                chat_id=message.from_user.id,
+                text=f"\nТакой номер магазина уже существует"
+                f"\nПроверьте корректность ввода данных\n"
+                f"\nНомер магазина:  {message.text}\n"
+                f"\nПопробуйте снова",
+                reply_markup=admin_kb_cr)
+        else:
+            async with state.proxy() as data:
+                data['shop_id'] = message.text

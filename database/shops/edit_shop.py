@@ -16,6 +16,6 @@ async def edit_shop_bd(shop_id, shop_number, brand, city):
                                  password=PSWD,
                                  database=DB,
                                  host=HOST)
-    await conn.execute("UPDATE shops SET shop_number=$2, brand=#3, city=$4 WHERE shop_id=$1",
+    await conn.execute('UPDATE shops SET shop_number=$2, brand=#3, city=$4 WHERE shop_id=$1',
                        shop_id, shop_number, brand, city)
     await conn.close()
