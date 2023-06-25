@@ -1,13 +1,19 @@
+from datetime import datetime
 from aiogram import types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
+from aiogram.dispatcher import filters
 
 from config.bot_config import bot, dp
 from keyboards.director_kb import (director_kb_main_menu,
-                                   director_kb_operations)
-from database.users.view_users import get_employees, get_shop
+                                   director_kb_operations,
+                                   director_kb_stop_productivitty)
+from database.users.view_users import (get_employees,
+                                       get_shop,
+                                       get_employee_from_users)
 from database.users.check_shop_user import check_shop_from_user
 from database.users.delete_user import delete_user
+from database.productivity.create_productivity import create_productivity
 
 
 @dp.callback_query_handler(text="view_list")
@@ -22,8 +28,9 @@ async def view_list(callback_query: types.CallbackQuery):
             first_name = f"{employee['first_name']}"
             last_name = f"{employee['last_name']}"
             user_position = f"{employee['user_position']}"
-            text_message += f"{n}. {first_name} {last_name},\n \
-            {user_id} - ID сотрдуника, \nДолжность: {user_position}\n\n"
+            text_message += f"{n}. {first_name} {last_name},\
+            \n{user_id} - ID сотрдуника,\
+            \nДолжность: {user_position}\n\n"
             n += 1
 
         await bot.send_message(chat_id=callback_query.from_user.id,
@@ -88,15 +95,112 @@ async def analysis_of_delivery(callback_query: types.CallbackQuery):
     user_id = callback_query.from_user.id
     shop_id = await get_shop(user_id=user_id)
     list_employees = await get_employees(shop_id=shop_id[0])
-    director_kb_view_employees = types.InlineKeyboardMarkup(row_width=1)
+    global director_kb_view_employees
+    director_kb_view_employees = types.InlineKeyboardMarkup(row_width=2)
+    start_productivity_btn = types.InlineKeyboardButton(
+        text="Начать подсчет продуктивности",
+        callback_data="start_productivity",
+    )
     for i in list_employees:
         director_kb_view_employees.add(
             types.InlineKeyboardButton(
                 text=f"{i['first_name']} {i['last_name']}",
                 callback_data=f"{i['user_id']}")
         )
+    director_kb_view_employees.add(start_productivity_btn)
     await bot.delete_message(chat_id=callback_query.from_user.id,
                              message_id=callback_query.message.message_id)
     await bot.send_message(chat_id=callback_query.from_user.id,
                            text="Выберите нужных сотрудников для подсчета",
                            reply_markup=director_kb_view_employees)
+
+
+user_selected_options = []
+user_full_name = []
+
+
+@dp.callback_query_handler(filters.Regexp(regexp='\d+'))
+async def choose_user(callback_query: types.CallbackQuery):
+    out_name_user = await get_employee_from_users(
+        user_id=int(callback_query.data))
+    full_name = out_name_user['first_name'] + ' ' + out_name_user['last_name']
+    if callback_query.data in user_selected_options:
+        user_selected_options.remove(callback_query.data)
+        user_full_name.remove(full_name)
+        await bot.delete_message(chat_id=callback_query.from_user.id,
+                                 message_id=callback_query.message.message_id)
+        await bot.send_message(chat_id=callback_query.from_user.id,
+                               text=f"✅ Выбранные сотрудники:"
+                               f"\n {user_full_name} ",
+                               reply_markup=director_kb_view_employees)
+    else:
+        user_selected_options.append(callback_query.data)
+        user_full_name.append(full_name)
+        await bot.delete_message(chat_id=callback_query.from_user.id,
+                                 message_id=callback_query.message.message_id)
+        await bot.send_message(chat_id=callback_query.from_user.id,
+                               text=f"✅ Выбранные сотрудники:"
+                               f"\n {user_full_name}",
+                               reply_markup=director_kb_view_employees)
+
+
+class FSM_analyze_productivity(StatesGroup):
+    number_of_units = State()
+
+
+@dp.callback_query_handler(text="start_productivity")
+async def start_productivity(callback_query: types.CallbackQuery):
+    global start_time
+    start_time = datetime.now()
+    await bot.delete_message(chat_id=callback_query.from_user.id,
+                             message_id=callback_query.message.message_id)
+    await bot.send_message(chat_id=callback_query.from_user.id,
+                           text=f"Начался подсчет продуктивности,\
+                           \nВремя начала: {start_time}",
+                           reply_markup=director_kb_stop_productivitty)
+
+
+@dp.callback_query_handler(text="stop_productivity")
+async def stop_productivity(callback_query: types.CallbackQuery):
+    await FSM_analyze_productivity.number_of_units.set()
+    global stop_time
+    stop_time = datetime.now()
+    global time_spent
+    time_spent = stop_time - start_time
+    await bot.delete_message(chat_id=callback_query.from_user.id,
+                             message_id=callback_query.message.message_id)
+    await bot.send_message(chat_id=callback_query.from_user.id,
+                           text=f"Вы закончили подсчет продуктивности,\
+                           \nВремя старта: {start_time}\
+                           \nВремя окончания: {stop_time}\
+                           \n\n Введите кол-во единиц поставки")
+
+
+@dp.message_handler(state=FSM_analyze_productivity.number_of_units)
+async def add_number_of_units(message: types.Message, state: FSMContext):
+    async with state.proxy() as data:
+        check_text = int(message.text)
+        if isinstance(check_text, int):
+            data['num_of_units'] = message.text
+            units = int(data['num_of_units'])
+            total_time = time_spent.seconds * len(
+                user_selected_options) // 3600
+            print(total_time)
+            productivity = units // total_time
+            for i in user_selected_options:
+                await create_productivity(user_id=int(i),
+                                          start_time=start_time,
+                                          end_time=stop_time,
+                                          num_of_units=units,
+                                          productivity=productivity)
+            await state.finish()
+            await bot.send_message(chat_id=message.from_user.id,
+                                   text=f"Расчет продуктивности окончен \
+                                    \nОбщее затраченное время: {total_time} ч.\
+                                    \n Продуктивность: {productivity}!",
+                                   reply_markup=director_kb_main_menu)
+        else:
+            await state.finish()
+            await bot.send_message(chat_id=message.from_user.id,
+                                   text=f"Это не число: {message.text}",
+                                   reply_markup=director_kb_main_menu)

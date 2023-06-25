@@ -63,3 +63,13 @@ director_kb_operations.add(analysis_of_delivery,
                            transfer_to_salesfloor,
                            transfer_to_warehouse,
                            revaluation_of_salesfloor)
+
+
+director_kb_stop_productivitty = types.InlineKeyboardMarkup()
+
+stop_button_prod = types.InlineKeyboardButton(
+    text="Остановить подсчет продуктивности",
+    callback_data="stop_productivity"
+)
+
+director_kb_stop_productivitty.add(stop_button_prod)

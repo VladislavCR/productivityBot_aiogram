@@ -222,19 +222,19 @@ async def add_shop_cr(callback_query: types.CallbackQuery):
                            text="Бренд CR, `\nВведите номер магазина \n")
 
 
-@dp.message_handler(state=FSM_create_shop.shop_id)
-async def load_shop_id_admin(message: types.Message, state: FSMContext):
-    try:
-        test_check_shop_id = await check_shop(shop_number=int(message.text))
-        if test_check_shop_id:
-            await state.finish()
-            await bot.send_message(
-                chat_id=message.from_user.id,
-                text=f"\nТакой номер магазина уже существует"
-                f"\nПроверьте корректность ввода данных\n"
-                f"\nНомер магазина:  {message.text}\n"
-                f"\nПопробуйте снова",
-                reply_markup=admin_kb_cr)
-        else:
-            async with state.proxy() as data:
-                data['shop_id'] = message.text
+# @dp.message_handler(state=FSM_create_shop.shop_id)
+# async def load_shop_id_admin(message: types.Message, state: FSMContext):
+#     try:
+#         test_check_shop_id = await check_shop(shop_number=int(message.text))
+#         if test_check_shop_id:
+#             await state.finish()
+#             await bot.send_message(
+#                 chat_id=message.from_user.id,
+#                 text=f"\nТакой номер магазина уже существует"
+#                 f"\nПроверьте корректность ввода данных\n"
+#                 f"\nНомер магазина:  {message.text}\n"
+#                 f"\nПопробуйте снова",
+#                 reply_markup=admin_kb_cr)
+#         else:
+#             async with state.proxy() as data:
+#                 data['shop_id'] = message.text
