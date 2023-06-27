@@ -14,6 +14,8 @@ from database.users.view_users import (get_employees,
 from database.users.check_shop_user import check_shop_from_user
 from database.users.delete_user import delete_user
 from database.productivity.create_productivity import create_productivity
+from database.productivity.check_avg_prod_shop import (
+    check_avg_productivity_shop)
 
 
 @dp.callback_query_handler(text="view_list")
@@ -183,9 +185,8 @@ async def add_number_of_units(message: types.Message, state: FSMContext):
         if isinstance(check_text, int):
             data['num_of_units'] = message.text
             units = int(data['num_of_units'])
-            total_time = time_spent.seconds * len(
-                user_selected_options) // 3600
-            print(total_time)
+            total_time = round(time_spent.seconds * len(
+                user_selected_options) / 3600, 3)
             productivity = units // total_time
             for i in user_selected_options:
                 await create_productivity(user_id=int(i),
@@ -204,3 +205,29 @@ async def add_number_of_units(message: types.Message, state: FSMContext):
             await bot.send_message(chat_id=message.from_user.id,
                                    text=f"Это не число: {message.text}",
                                    reply_markup=director_kb_main_menu)
+
+
+@dp.callback_query_handler(text="raiting_of_store")
+async def chech_shop_productivity(callback_query: types.CallbackQuery):
+    list_shops = await check_avg_productivity_shop()
+    n = 1
+    text_message = ''
+    try:
+        for shop in list_shops:
+            shop_id = f"{shop['shop_id']}"
+            avg_prod = shop['avg']
+            text_message += f"{n}. {shop_id}\
+                \nСредняя продуктивность разбора {avg_prod:.1f}\n\n"
+            n += 1
+
+        await bot.send_message(chat_id=callback_query.from_user.id,
+                               text=text_message)
+        await bot.delete_message(chat_id=callback_query.from_user.id,
+                                 message_id=callback_query.message.message_id)
+        await bot.send_message(chat_id=callback_query.from_user.id,
+                               text="Главное меню!",
+                               reply_markup=director_kb_main_menu)
+    except Exception:
+        await bot.send_message(chat_id=callback_query.from_user.id,
+                               text="Что-то пошло не так :(",
+                               reply_markup=director_kb_main_menu)

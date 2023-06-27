@@ -17,7 +17,8 @@ async def get_employees(shop_id):
         user=USER, password=PSWD, database=DB, host=HOST
     )
     rows = await conn.fetch(
-        'SELECT user_id, first_name, last_name, user_position FROM users WHERE shop_id = $1',
+        'SELECT user_id, first_name, last_name, user_position\
+        FROM users WHERE shop_id = $1',
         shop_id
     )
     await conn.close()
@@ -44,7 +45,8 @@ async def get_employee_from_users(user_id):
         user=USER, password=PSWD, database=DB, host=HOST
     )
     rows = await conn.fetch(
-        'SELECT first_name, last_name, user_position FROM users WHERE user_id = $1',
+        'SELECT first_name, last_name, user_position\
+        FROM users WHERE user_id = $1',
         user_id
     )
     await conn.close()
