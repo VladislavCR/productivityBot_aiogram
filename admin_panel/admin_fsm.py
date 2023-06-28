@@ -3,7 +3,7 @@ from config.bot_config import dp, bot
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
-from keyboards.admin_kb import admin_kb_add_rights, admin_kb_main_menu, admin_kb_cr
+from keyboards.admin_kb import admin_kb_add_rights, admin_kb_main_menu
 from keyboards.director_kb import director_kb_main_menu
 from database.user_role.check_role import check_bd_user_role, check_user
 from database.user_role.create_role import create_admin, create_director
@@ -11,7 +11,26 @@ from database.users.delete_user import delete_user
 from database.shops.check_shop import check_shop
 
 
-@dp.callback_query_handler(text="add_rights", state=None)
+@dp.callback_query_handler(text="admin_menu")
+async def choice_admin_menu(callback_query: types.CallbackQuery):
+    await bot.delete_message(chat_id=callback_query.from_user.id,
+                             message_id=callback_query.message.message_id)
+    await bot.send_message(chat_id=callback_query.from_user.id,
+                           text='Ты выбрал меню супер пользователя!',
+                           reply_markup=admin_kb_main_menu)
+
+
+@dp.callback_query_handler(text="director_menu")
+async def choice_director_menu(callback_query: types.CallbackQuery):
+    await bot.delete_message(chat_id=callback_query.from_user.id,
+                             message_id=callback_query.message.message_id)
+    await bot.send_message(chat_id=callback_query.from_user.id,
+                           text='Ты выбрал меню директора :)\
+                            \nДля возврата набери /start',
+                           reply_markup=director_kb_main_menu)
+
+
+@dp.callback_query_handler(text="add_rights")
 async def add_rights(callback_query: types.CallbackQuery):
     await bot.delete_message(chat_id=callback_query.from_user.id,
                              message_id=callback_query.message.message_id)
@@ -24,7 +43,7 @@ class FSM_create_user_role_admin(StatesGroup):
     user_id = State()
 
 
-@dp.callback_query_handler(text="make_user_admin", state=None)
+@dp.callback_query_handler(text="make_user_admin")
 async def load_user_role_admin(callback_query: types.CallbackQuery):
     await FSM_create_user_role_admin.user_id.set()
     await bot.delete_message(chat_id=callback_query.from_user.id,

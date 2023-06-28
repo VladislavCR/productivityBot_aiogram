@@ -19,7 +19,7 @@ raiting_of_store = types.InlineKeyboardButton(
     callback_data="raiting_of_store"
 )
 raiting_inside_store = types.InlineKeyboardButton(
-    text="Посмотреть рейтинг сотрудников внутри магизна",
+    text="Посмотреть рейтинг сотрудников внутри магазина",
     callback_data="raiting_inside_store"
 )
 statistic_by_day = types.InlineKeyboardButton(

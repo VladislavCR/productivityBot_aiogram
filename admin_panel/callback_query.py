@@ -3,6 +3,7 @@ from aiogram.dispatcher import FSMContext
 
 from config.bot_config import bot, dp
 from keyboards.admin_kb import (admin_kb_main_menu,
+                                admin_kb_choices_menu,
                                 admin_kb_add_shop,
                                 admin_kb_cr,
                                 admin_kb_mo,
@@ -24,7 +25,7 @@ async def start_cmd(message: types.Message):
     if check_user_role == 'admin':
         await bot.send_message(chat_id=message.from_user.id,
                                text='Привет! Админ',
-                               reply_markup=director_kb_main_menu)
+                               reply_markup=admin_kb_choices_menu)
     elif check_user_role == 'director':
         await bot.send_message(chat_id=message.from_user.id,
                                text='Привет! Директор',

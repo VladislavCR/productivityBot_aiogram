@@ -19,7 +19,7 @@ from database.productivity.check_avg_prod_shop import (
 from database.productivity.check_avg_prod_users_in_shop import (
     check_avg_productivity_users_in_shop
 )
-from database.shops.check_shop import check_user_shop
+from database.productivity.check_prod_by_day import check_avg_productivity_by_day 
 
 
 @dp.callback_query_handler(text="view_list")
@@ -202,7 +202,7 @@ async def add_number_of_units(message: types.Message, state: FSMContext):
             await bot.send_message(chat_id=message.from_user.id,
                                    text=f"Расчет продуктивности окончен \
                                     \nОбщее затраченное время: {total_time} ч.\
-                                    \n Продуктивность: {productivity}!",
+                                    \n Продуктивность: {productivity} ед.\ч.!",
                                    reply_markup=director_kb_main_menu)
         else:
             await state.finish()
@@ -255,6 +255,35 @@ async def check_employees_productivity_in_shop(
             text_message += f"{n}. {first_name} {last_name}\
                 \nСредняя продуктивность разбора {avg_prod:.1f}\n\n"
             n += 1
+
+        await bot.send_message(chat_id=callback_query.from_user.id,
+                               text=text_message)
+        await bot.delete_message(chat_id=callback_query.from_user.id,
+                                 message_id=callback_query.message.message_id)
+        await bot.send_message(chat_id=callback_query.from_user.id,
+                               text="Главное меню!",
+                               reply_markup=director_kb_main_menu)
+    except Exception:
+        await bot.send_message(chat_id=callback_query.from_user.id,
+                               text="Что-то пошло не так :(",
+                               reply_markup=director_kb_main_menu)
+
+
+@dp.callback_query_handler(text="statistic_by_day")
+async def check_productivity_by_days(
+    callback_query: types.CallbackQuery
+):
+    shop_id = await check_shop_from_user(callback_query.from_user.id)
+    list_by_days = await check_avg_productivity_by_day(
+        shop_id=shop_id
+    )
+    text_message = ''
+    try:
+        for days in list_by_days:
+            date = f"{days['start_time']}"
+            avg_prod = days['avg']
+            text_message += f"Дата разбора: {date}\
+                \nСредняя продуктивность разбора {avg_prod:.1f}\n\n"
 
         await bot.send_message(chat_id=callback_query.from_user.id,
                                text=text_message)

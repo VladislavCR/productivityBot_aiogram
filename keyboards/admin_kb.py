@@ -1,6 +1,18 @@
 from aiogram import types
 
 
+admin_kb_choices_menu = types.InlineKeyboardMarkup(row_width=1)
+
+admin_menu = types.InlineKeyboardButton(
+    text="Меню Администратора", callback_data="admin_menu"
+)
+
+director_menu = types.InlineKeyboardButton(
+    text="Меню директора", callback_data="director_menu"
+)
+
+admin_kb_choices_menu.add(admin_menu, director_menu)
+
 admin_kb_main_menu = types.InlineKeyboardMarkup()
 
 make_user_admin = types.InlineKeyboardButton(
