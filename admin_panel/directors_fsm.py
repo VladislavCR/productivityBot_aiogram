@@ -16,6 +16,10 @@ from database.users.delete_user import delete_user
 from database.productivity.create_productivity import create_productivity
 from database.productivity.check_avg_prod_shop import (
     check_avg_productivity_shop)
+from database.productivity.check_avg_prod_users_in_shop import (
+    check_avg_productivity_users_in_shop
+)
+from database.shops.check_shop import check_user_shop
 
 
 @dp.callback_query_handler(text="view_list")
@@ -208,7 +212,7 @@ async def add_number_of_units(message: types.Message, state: FSMContext):
 
 
 @dp.callback_query_handler(text="raiting_of_store")
-async def chech_shop_productivity(callback_query: types.CallbackQuery):
+async def check_shop_productivity(callback_query: types.CallbackQuery):
     list_shops = await check_avg_productivity_shop()
     n = 1
     text_message = ''
@@ -217,6 +221,38 @@ async def chech_shop_productivity(callback_query: types.CallbackQuery):
             shop_id = f"{shop['shop_id']}"
             avg_prod = shop['avg']
             text_message += f"{n}. {shop_id}\
+                \nСредняя продуктивность разбора {avg_prod:.1f}\n\n"
+            n += 1
+
+        await bot.send_message(chat_id=callback_query.from_user.id,
+                               text=text_message)
+        await bot.delete_message(chat_id=callback_query.from_user.id,
+                                 message_id=callback_query.message.message_id)
+        await bot.send_message(chat_id=callback_query.from_user.id,
+                               text="Главное меню!",
+                               reply_markup=director_kb_main_menu)
+    except Exception:
+        await bot.send_message(chat_id=callback_query.from_user.id,
+                               text="Что-то пошло не так :(",
+                               reply_markup=director_kb_main_menu)
+
+
+@dp.callback_query_handler(text="raiting_inside_store")
+async def check_employees_productivity_in_shop(
+    callback_query: types.CallbackQuery
+):
+    shop_id = await check_shop_from_user(callback_query.from_user.id)
+    list_employees = await check_avg_productivity_users_in_shop(
+        shop_id=shop_id
+    )
+    n = 1
+    text_message = ''
+    try:
+        for employee in list_employees:
+            first_name = f"{employee['first_name']}"
+            last_name = f"{employee['last_name']}"
+            avg_prod = employee['user_prod']
+            text_message += f"{n}. {first_name} {last_name}\
                 \nСредняя продуктивность разбора {avg_prod:.1f}\n\n"
             n += 1
 
