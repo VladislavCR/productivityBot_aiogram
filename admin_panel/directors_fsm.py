@@ -15,11 +15,12 @@ from database.users.check_shop_user import check_shop_from_user
 from database.users.delete_user import delete_user
 from database.productivity.create_productivity import create_productivity
 from database.productivity.check_avg_prod_shop import (
-    check_avg_productivity_shop)
+    check_avg_productivity_shops)
 from database.productivity.check_avg_prod_users_in_shop import (
     check_avg_productivity_users_in_shop
 )
-from database.productivity.check_prod_by_day import check_avg_productivity_by_day 
+from database.productivity.check_prod_by_day import (
+    check_avg_productivity_by_day)
 
 
 @dp.callback_query_handler(text="view_list")
@@ -47,6 +48,8 @@ async def view_list(callback_query: types.CallbackQuery):
                                text="Главное меню!",
                                reply_markup=director_kb_main_menu)
     except Exception:
+        await bot.delete_message(chat_id=callback_query.from_user.id,
+                                 message_id=callback_query.message.message_id)
         await bot.send_message(chat_id=callback_query.from_user.id,
                                text="Что-то пошло не так :(")
 
@@ -213,7 +216,7 @@ async def add_number_of_units(message: types.Message, state: FSMContext):
 
 @dp.callback_query_handler(text="raiting_of_store")
 async def check_shop_productivity(callback_query: types.CallbackQuery):
-    list_shops = await check_avg_productivity_shop()
+    list_shops = await check_avg_productivity_shops()
     n = 1
     text_message = ''
     try:
@@ -232,6 +235,8 @@ async def check_shop_productivity(callback_query: types.CallbackQuery):
                                text="Главное меню!",
                                reply_markup=director_kb_main_menu)
     except Exception:
+        await bot.delete_message(chat_id=callback_query.from_user.id,
+                                 message_id=callback_query.message.message_id)
         await bot.send_message(chat_id=callback_query.from_user.id,
                                text="Что-то пошло не так :(",
                                reply_markup=director_kb_main_menu)
@@ -264,6 +269,8 @@ async def check_employees_productivity_in_shop(
                                text="Главное меню!",
                                reply_markup=director_kb_main_menu)
     except Exception:
+        await bot.delete_message(chat_id=callback_query.from_user.id,
+                                 message_id=callback_query.message.message_id)
         await bot.send_message(chat_id=callback_query.from_user.id,
                                text="Что-то пошло не так :(",
                                reply_markup=director_kb_main_menu)
@@ -293,6 +300,8 @@ async def check_productivity_by_days(
                                text="Главное меню!",
                                reply_markup=director_kb_main_menu)
     except Exception:
+        await bot.delete_message(chat_id=callback_query.from_user.id,
+                                 message_id=callback_query.message.message_id)
         await bot.send_message(chat_id=callback_query.from_user.id,
                                text="Что-то пошло не так :(",
                                reply_markup=director_kb_main_menu)

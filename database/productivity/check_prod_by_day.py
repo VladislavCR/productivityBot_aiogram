@@ -34,3 +34,26 @@ async def check_avg_productivity_by_day(shop_id):
         return 'None'
     else:
         return [dict(row) for row in rows]
+
+
+async def check_personal_prod_by_day(user_id):
+    conn = await asyncpg.connect(user=USER,
+                                 password=PSWD,
+                                 database=DB,
+                                 host=HOST)
+    rows = await conn.fetch(
+        "WITH prod_table AS\
+        (SELECT first_name, last_name, start_time::date AS date_prod,\
+        AVG(users_productivity.productivity) AS user_prod\
+        FROM users_productivity\
+        JOIN users on users.user_id = users_productivity.user_id\
+        WHERE users.user_id = $1\
+        GROUP BY users.first_name, users.last_name, date_prod)\
+        SELECT date_part('day', date_prod) AS day_number,\
+        first_name, last_name, user_prod\
+        FROM prod_table", user_id)
+    await conn.close()
+    if rows is None:
+        return 'None'
+    else:
+        return [dict(row) for row in rows]

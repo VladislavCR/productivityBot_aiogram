@@ -21,25 +21,25 @@ return_bt = types.InlineKeyboardButton(
 employee_kb_return.add(return_bt)
 
 
-employee_registed_kb = types.InlineKeyboardMarkup()
+employee_registed_kb = types.InlineKeyboardMarkup(row_width=1)
 
-show_personal_stat = types.InlineKeyboardButton(
-    text="Посмотреть персональную статистику",
-    callback_data="show_personal_stat")
+show_personal_stat_month = types.InlineKeyboardButton(
+    text="Посмотреть персональную статистику по неделям",
+    callback_data="show_personal_stat_week")
+
+show_personal_stat_day = types.InlineKeyboardButton(
+    text="Посмотреть персональную статистику по дням",
+    callback_data="show_personal_stat_day")
 
 show_shop_stat = types.InlineKeyboardButton(
-    text="Посмотреть статистику магазина",
+    text="Посмотреть статистику магазина по неделям",
     callback_data="show_shop_stat")
 
 show_all_stat = types.InlineKeyboardButton(
     text="Посмореть ТОП 30 лучших сотрудников бренда",
-    callback_data="show_all_stat")
+    callback_data="show_top_in_brand")
 
-help_new_emp = types.InlineKeyboardButton(
-    text="Помощь", callback_data="help_new_emp")
-
-employee_registed_kb.add(
-    show_personal_stat).add(
-        show_shop_stat).add(
-            show_all_stat).add(
-                help_new_emp)
+employee_registed_kb.add(show_personal_stat_month,
+                         show_personal_stat_day,
+                         show_shop_stat,
+                         show_all_stat)

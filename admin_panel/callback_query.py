@@ -47,11 +47,12 @@ async def cancel_cmd(message: types.Message, state: FSMContext):
     curr_state = await state.get_state()
     if curr_state is None:
         return
-    await state.finish()
-    await bot.delete_message(chat_id=message.from_user.id,
-                             message_id=message.message_id)
-    await message.reply('Вы прервали операцию',
-                        reply_markup=admin_kb_main_menu)
+    else:
+        await state.finish()
+        await bot.delete_message(chat_id=message.from_user.id,
+                                 message_id=message.message_id)
+        await message.reply('Вы прервали операцию',
+                            reply_markup=admin_kb_main_menu)
 
 
 @dp.callback_query_handler(text="add_shop")

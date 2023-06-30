@@ -12,12 +12,14 @@ DB = config['database']
 HOST = config['host']
 
 
-async def check_shop_from_user(user_id):
+async def check_brand_from_user(user_id):
     conn = await asyncpg.connect(
         user=USER, password=PSWD, database=DB, host=HOST
     )
     row = await conn.fetchrow(
-        'SELECT shop_id  FROM users WHERE user_id = $1',
+        'SELECT brand FROM users\
+        JOIN shops ON users.shop_id = shops.shop_id\
+        WHERE user_id = $1',
         user_id,
     )
     await conn.close()
