@@ -166,7 +166,7 @@ async def start_productivity(callback_query: types.CallbackQuery):
                              message_id=callback_query.message.message_id)
     await bot.send_message(chat_id=callback_query.from_user.id,
                            text=f"Начался подсчет продуктивности,\
-                           \nВремя начала: {start_time:.0f}",
+                           \nВремя начала: {start_time}",
                            reply_markup=director_kb_stop_productivitty)
 
 
@@ -181,8 +181,8 @@ async def stop_productivity(callback_query: types.CallbackQuery):
                              message_id=callback_query.message.message_id)
     await bot.send_message(chat_id=callback_query.from_user.id,
                            text=f"Вы закончили подсчет продуктивности,\
-                           \nВремя старта: {start_time:.0f}\
-                           \nВремя окончания: {stop_time:.0f}\
+                           \nВремя старта: {start_time}\
+                           \nВремя окончания: {stop_time}\
                            \n\n Введите кол-во единиц поставки")
 
 
