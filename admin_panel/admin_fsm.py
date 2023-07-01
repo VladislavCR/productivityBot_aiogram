@@ -9,6 +9,7 @@ from database.user_role.check_role import check_bd_user_role, check_user
 from database.user_role.create_role import create_admin, create_director
 from database.users.delete_user import delete_user
 from database.shops.check_shop import check_shop
+from admin_panel.callback_query import *
 
 
 @dp.callback_query_handler(text="admin_menu")
@@ -126,7 +127,6 @@ async def load_user_role_director(callback_query: types.CallbackQuery):
 @dp.message_handler(state=FSM_create_user_role_director.user_id)
 async def load_user_id_director(message: types.Message, state: FSMContext):
     try:
-        float(message.text)
         test_check_user = await check_user(user_id=int(message.text))
         if test_check_user:
             test = await check_bd_user_role(user_id=int(message.text))
@@ -171,7 +171,7 @@ async def load_user_id_director(message: types.Message, state: FSMContext):
                             await create_director(user_id=int_data)
                             await bot.send_message(
                                 chat_id=message.from_user.id,
-                                text=f"\nАдминистратор\n"
+                                text=f"\nДиректор\n"
                                 f"ID пользователя:  {int_data}\n",
                                 reply_markup=admin_kb_main_menu)
         else:
@@ -208,16 +208,33 @@ async def remove_rights(callback_query: types.CallbackQuery):
 async def delete_user_role(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         try:
-            row = await check_bd_user_role(int(message.text))
-            data['id'] = str(message.text)
-            id = int(data['id'])
-            await delete_user(user_id=id)
-            await state.finish()
-            await bot.send_message(chat_id=message.from_user.id,
-                                   text=f"ID пользователя: {id}\n"
-                                   f"Роль пользователя {row}\n"
-                                   "Удалена",
-                                   reply_markup=admin_kb_main_menu)
+            if str.isdigit(message.text):
+                row = await check_bd_user_role(int(message.text))
+                if row is None:
+                    await state.finish()
+                    await bot.send_message(
+                        chat_id=message.from_user.id,
+                        text=f"ID пользователя: {message.text}\
+                        \nОшибка. Такого ID пользователя не существует\
+                        \nПопробуйте ещё раз",
+                        reply_markup=admin_kb_main_menu)
+                else:
+                    await delete_user(user_id=int(message.text))
+                    await state.finish()
+                    await bot.send_message(
+                        chat_id=message.from_user.id,
+                        text=f"ID пользователя: {id}\n"
+                        f"Роль пользователя {row}\n"
+                        "Удалена",
+                        reply_markup=admin_kb_main_menu)
+            else:
+                await state.finish()
+                await bot.send_message(
+                    chat_id=message.from_user.id,
+                    text=f"ID пользователя: {message.text}\n"
+                    "Ошибка. Нет такого ID пользователя\n"
+                    "\nПопробуйте ещё раз",
+                    reply_markup=admin_kb_main_menu)
         except TypeError:
             await state.finish()
             await bot.send_message(chat_id=message.from_user.id,

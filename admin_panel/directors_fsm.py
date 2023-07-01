@@ -21,6 +21,7 @@ from database.productivity.check_avg_prod_users_in_shop import (
 )
 from database.productivity.check_prod_by_day import (
     check_avg_productivity_by_day)
+from admin_panel.callback_query import *
 
 
 @dp.callback_query_handler(text="view_list")
@@ -165,7 +166,7 @@ async def start_productivity(callback_query: types.CallbackQuery):
                              message_id=callback_query.message.message_id)
     await bot.send_message(chat_id=callback_query.from_user.id,
                            text=f"Начался подсчет продуктивности,\
-                           \nВремя начала: {start_time}",
+                           \nВремя начала: {start_time:.0f}",
                            reply_markup=director_kb_stop_productivitty)
 
 
@@ -180,8 +181,8 @@ async def stop_productivity(callback_query: types.CallbackQuery):
                              message_id=callback_query.message.message_id)
     await bot.send_message(chat_id=callback_query.from_user.id,
                            text=f"Вы закончили подсчет продуктивности,\
-                           \nВремя старта: {start_time}\
-                           \nВремя окончания: {stop_time}\
+                           \nВремя старта: {start_time:.0f}\
+                           \nВремя окончания: {stop_time:.0f}\
                            \n\n Введите кол-во единиц поставки")
 
 
@@ -221,9 +222,9 @@ async def check_shop_productivity(callback_query: types.CallbackQuery):
     text_message = ''
     try:
         for shop in list_shops:
-            shop_id = f"{shop['shop_id']}"
+            shop_id = shop['shop_id']
             avg_prod = shop['avg']
-            text_message += f"{n}. {shop_id}\
+            text_message += f"{n}. Номер магазина: {shop_id}\
                 \nСредняя продуктивность разбора {avg_prod:.1f}\n\n"
             n += 1
 
@@ -254,10 +255,12 @@ async def check_employees_productivity_in_shop(
     text_message = ''
     try:
         for employee in list_employees:
-            first_name = f"{employee['first_name']}"
-            last_name = f"{employee['last_name']}"
+            user_position = employee['user_position']
+            first_name = employee['first_name']
+            last_name = employee['last_name']
             avg_prod = employee['user_prod']
             text_message += f"{n}. {first_name} {last_name}\
+                \nДолжность сотрудника: {user_position}\
                 \nСредняя продуктивность разбора {avg_prod:.1f}\n\n"
             n += 1
 

@@ -22,7 +22,7 @@ async def check_bd_user_role(user_id):
     )
     await conn.close()
     if row is None:
-        return 'None'
+        return None
     else:
         return row['user_role']
 

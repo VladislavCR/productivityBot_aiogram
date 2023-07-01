@@ -18,7 +18,7 @@ async def check_avg_productivity_users_in_shop(shop_id):
                                  host=HOST)
     rows = await conn.fetch(
         'SELECT AVG(users_productivity.productivity) AS user_prod,\
-        first_name, last_name, users.shop_id\
+        first_name, last_name, users.shop_id, user_position\
         FROM users\
         JOIN users_productivity ON users.user_id = users_productivity.user_id\
         WHERE shop_id = $1\

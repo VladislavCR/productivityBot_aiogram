@@ -35,7 +35,7 @@ async def check_personal_prod_by_week(user_id):
         return [dict(row) for row in rows]
 
 
-async def check_top30_in_brand(user_id, brand):
+async def check_top30_in_brand(brand):
     conn = await asyncpg.connect(user=USER,
                                  password=PSWD,
                                  database=DB,
@@ -47,14 +47,14 @@ async def check_top30_in_brand(user_id, brand):
         FROM users_productivity\
         JOIN users ON users.user_id = users_productivity.user_id\
         join shops ON users.shop_id  = shops.shop_id\
-        WHERE users.user_id = $1 and brand = $2\
+        WHERE brand = $1\
         GROUP BY users.first_name, users.last_name, date_week)\
         SELECT date_part('week', date_week) AS week_number,\
         first_name, last_name, AVG(user_prod) AS week_prod\
         FROM prod_table\
         GROUP BY week_number, first_name, last_name\
         ORDER BY week_prod desc\
-        LIMIT 30", user_id, brand)
+        LIMIT 30", brand)
     await conn.close()
     if rows is None:
         return 'None'

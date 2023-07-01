@@ -31,12 +31,11 @@ class FSM_create_new_user(StatesGroup):
 @dp.callback_query_handler(text="start_reg", state=None)
 async def start_registration(callback_query: types.CallbackQuery):
     await FSM_create_new_user.first_name.set()
-    await bot.delete_message(chat_id=callback_query.from_user.id,
-                             message_id=callback_query.message.message_id)
-    await bot.send_message(chat_id=callback_query.from_user.id,
-                           text="Начало регистрации!\n"
-                           "Введи свое имя:",
-                           reply_markup=employee_kb_return)
+    await bot.edit_message_text(chat_id=callback_query.from_user.id,
+                                message_id=callback_query.message.message_id,
+                                text="Начало регистрации!\n"
+                                "Введи свое имя:",
+                                reply_markup=employee_kb_return)
 
 
 @dp.message_handler(state=FSM_create_new_user.first_name)
@@ -147,9 +146,9 @@ async def choice_shop(message: types.Message, state: FSMContext):
         else:
             await state.finish()
             await bot.send_message(chat_id=message.from_user.id,
-                                   text=f"\nОшибка такого номера магазине нет\n"
-                                   f"Номер магазина:  {message.text}\n"
-                                   f"\nПопробуйте ещё раз",
+                                   text=f"\nОшибка такого номера магазине нет\
+                                   \nНомер магазина:  {message.text}\
+                                   \nПопробуйте ещё раз",
                                    reply_markup=employee_kb_registration,
                                    )
 
@@ -248,7 +247,7 @@ async def show_shop_stat(
         await bot.delete_message(chat_id=callback_query.from_user.id,
                                  message_id=callback_query.message.message_id)
         await bot.send_message(chat_id=callback_query.from_user.id,
-                               text="Продуктивность сотрудников по неделям в сообщении",
+                               text="Продуктивность сотрудников в сообщении",
                                reply_markup=employee_registed_kb)
 
     except Exception:
@@ -265,7 +264,7 @@ async def show_top30_in_brand(
 ):
     user_id = callback_query.from_user.id
     brand = await check_brand_from_user(user_id)
-    list_by_weeks = await check_top30_in_brand(user_id=user_id, brand=brand)
+    list_by_weeks = await check_top30_in_brand(brand=brand)
     text_message = ''
     n = 1
     try:
@@ -280,11 +279,11 @@ async def show_top30_in_brand(
 
         await bot.send_message(chat_id=callback_query.from_user.id,
                                text=f"Неделя: {week_number:.0f}\
-                                \n{text_message}")
+                               \n{text_message}")
         await bot.delete_message(chat_id=callback_query.from_user.id,
                                  message_id=callback_query.message.message_id)
         await bot.send_message(chat_id=callback_query.from_user.id,
-                               text="Продуктивность сотрудников по неделям в сообщении",
+                               text="Продуктивность сотрудников в сообщении",
                                reply_markup=employee_registed_kb)
 
     except Exception:

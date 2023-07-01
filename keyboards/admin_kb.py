@@ -22,7 +22,7 @@ add_shop = types.InlineKeyboardButton(
     text="Добавить магазин", callback_data="add_shop"
 )
 delete_role_admin = types.InlineKeyboardButton(
-    text="Убрать права админа", callback_data="remove_rights"
+    text="Убрать права сотрудника", callback_data="remove_rights"
 )
 
 admin_kb_main_menu.add(make_user_admin, delete_role_admin).add(add_shop)
@@ -31,13 +31,13 @@ admin_kb_main_menu.add(make_user_admin, delete_role_admin).add(add_shop)
 admin_kb_add_rights = types.InlineKeyboardMarkup()
 
 make_user_admin = types.InlineKeyboardButton(
-    text="Назначить права администартора", callback_data="make_user_admin"
+    text="Назначить права администартора бота", callback_data="make_user_admin"
 )
 make_user_director = types.InlineKeyboardButton(
     text="Назначить права директора", callback_data="make_user_director"
 )
 go_back_main_menu = types.InlineKeyboardButton(
-    text="Вернуться в главное меню", callback_data="go_back_main_menu"
+    text="Вернуться в главное меню", callback_data="admin_go_back_main_menu"
 )
 
 admin_kb_add_rights.add(
@@ -64,7 +64,7 @@ xc_button = types.InlineKeyboardButton(
     text="Добавить магаин XC", callback_data="add_XC"
 )
 go_back_main_menu = types.InlineKeyboardButton(
-    text="Вернуться в главное меню", callback_data="go_back_main_menu"
+    text="Вернуться в главное меню", callback_data="admin_go_back_main_menu"
 )
 
 admin_kb_add_shop.add(
@@ -97,7 +97,7 @@ remove_staff = types.InlineKeyboardButton(
     text="Убрать магазин", callback_data="remove_shop_sin"
 )
 go_back_main_menu = types.InlineKeyboardButton(
-    text="Вернуться в главное меню", callback_data="go_back_main_menu"
+    text="Вернуться в главное меню", callback_data="admin_go_back_main_menu"
 )
 
 admin_kb_sin.add(add_shop).add(remove_staff).add(go_back_main_menu)
@@ -111,7 +111,7 @@ remove_staff = types.InlineKeyboardButton(
     text="Убрать магазин", callback_data="remove_shop_re"
 )
 go_back_main_menu = types.InlineKeyboardButton(
-    text="Вернуться в главное меню", callback_data="go_back_main_menu"
+    text="Вернуться в главное меню", callback_data="admin_go_back_main_menu"
 )
 
 admin_kb_re.add(add_shop).add(remove_staff).add(go_back_main_menu)
@@ -125,7 +125,7 @@ remove_staff = types.InlineKeyboardButton(
     text="Убрать магазин", callback_data="remove_shop_mo"
 )
 go_back_main_menu = types.InlineKeyboardButton(
-    text="Вернуться в главное меню", callback_data="go_back_main_menu"
+    text="Вернуться в главное меню", callback_data="admin_go_back_main_menu"
 )
 
 admin_kb_mo.add(add_shop).add(remove_staff).add(go_back_main_menu)
@@ -139,7 +139,7 @@ remove_staff = types.InlineKeyboardButton(
     text="Убрать магазин", callback_data="remove_shop_xc"
 )
 go_back_main_menu = types.InlineKeyboardButton(
-    text="Вернуться в главное меню", callback_data="go_back_main_menu"
+    text="Вернуться в главное меню", callback_data="admin_go_back_main_menu"
 )
 
 admin_kb_xc.add(add_shop).add(remove_staff).add(go_back_main_menu)
