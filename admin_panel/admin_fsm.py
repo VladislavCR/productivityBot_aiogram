@@ -3,6 +3,7 @@ from config.bot_config import dp, bot
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
+from config.message_function import delete_and_send_message
 from keyboards.admin_kb import admin_kb_add_rights, admin_kb_main_menu
 from keyboards.director_kb import director_kb_main_menu
 from database.user_role.check_role import check_bd_user_role, check_user
@@ -14,30 +15,30 @@ from admin_panel.callback_query import *
 
 @dp.callback_query_handler(text="admin_menu")
 async def choice_admin_menu(callback_query: types.CallbackQuery):
-    await bot.delete_message(chat_id=callback_query.from_user.id,
-                             message_id=callback_query.message.message_id)
-    await bot.send_message(chat_id=callback_query.from_user.id,
-                           text='Ты выбрал меню супер пользователя!',
-                           reply_markup=admin_kb_main_menu)
+    await delete_and_send_message(
+            callback_query.from_user.id,
+            callback_query.message.message_id,
+            text_message="Ты выбрал меню супер-пользователя",
+            reply_markup=admin_kb_main_menu)
 
 
 @dp.callback_query_handler(text="director_menu")
 async def choice_director_menu(callback_query: types.CallbackQuery):
-    await bot.delete_message(chat_id=callback_query.from_user.id,
-                             message_id=callback_query.message.message_id)
-    await bot.send_message(chat_id=callback_query.from_user.id,
-                           text='Ты выбрал меню директора :)\
-                            \nДля возврата набери /start',
-                           reply_markup=director_kb_main_menu)
+    await delete_and_send_message(
+            callback_query.from_user.id,
+            callback_query.message.message_id,
+            text_message="Ты выбрал меню директора"
+            "\n Для возврата выбери Главное меню (/start)",
+            reply_markup=director_kb_main_menu)
 
 
 @dp.callback_query_handler(text="add_rights")
 async def add_rights(callback_query: types.CallbackQuery):
-    await bot.delete_message(chat_id=callback_query.from_user.id,
-                             message_id=callback_query.message.message_id)
-    await bot.send_message(chat_id=callback_query.from_user.id,
-                           text='Выбери роль сотрудника!',
-                           reply_markup=admin_kb_add_rights)
+    await delete_and_send_message(
+            callback_query.from_user.id,
+            callback_query.message.message_id,
+            text_message="Выбери роль сотрудника",
+            reply_markup=admin_kb_add_rights)
 
 
 class FSM_create_user_role_admin(StatesGroup):
@@ -47,66 +48,73 @@ class FSM_create_user_role_admin(StatesGroup):
 @dp.callback_query_handler(text="make_user_admin")
 async def load_user_role_admin(callback_query: types.CallbackQuery):
     await FSM_create_user_role_admin.user_id.set()
-    await bot.delete_message(chat_id=callback_query.from_user.id,
-                             message_id=callback_query.message.message_id)
-    await bot.send_message(chat_id=callback_query.from_user.id,
-                           text="Роль успешно выбрана.\n"
-                           "\nВведите user_id пользователя,"
-                           "которого хотите назначить администратором:")
+    await delete_and_send_message(
+            callback_query.from_user.id,
+            callback_query.message.message_id,
+            text_message="Роль успешно выбрана.\n"
+                         "\nВведите user_id пользователя,"
+                         "которого хотите назначить администратором "
+                         "или отмените операцию в меню (/cancel)",
+            reply_markup=None)
 
 
 @dp.message_handler(state=FSM_create_user_role_admin.user_id)
 async def load_user_id_admin(message: types.Message, state: FSMContext):
     try:
-        float(message.text)
         test_check_user = await check_user(user_id=int(message.text))
         if test_check_user:
             test = await check_bd_user_role(user_id=int(message.text))
             if test == 'admin':
-                await state.finish()
-                await bot.send_message(
-                    chat_id=message.from_user.id,
-                    text=f"\nОшибка ID пользователя уже используется"
+                await delete_and_send_message(
+                    message.from_user.id,
+                    message.message_id,
+                    text_message=f"\nОшибка ID пользователя уже используется"
                     f"\nЭто Админ\n"
                     f"\nID пользователя:  {message.text}\n"
                     f"\nПопробуйте снова",
-                    reply_markup=admin_kb_main_menu)
+                    reply_markup=None
+                )
             elif test == 'director':
-                await state.finish()
-                await bot.send_message(
-                    chat_id=message.from_user.id,
-                    text=f"\nОшибка ID пользователя уже используется"
+                await delete_and_send_message(
+                    message.from_user.id,
+                    message.message_id,
+                    text_message=f"\nОшибка ID пользователя уже используется"
                     f"\nЭто Директор\n"
                     f"\nID пользователя:  {message.text}\n"
                     f"\nПопробуйте снова",
-                    reply_markup=admin_kb_main_menu)
+                    reply_markup=None
+                )
             else:
                 async with state.proxy() as data:
                     data['user_id'] = message.text
-                    str_data = str(data['user_id'])
-                    int_data = int(str_data)
+                    int_data = int(message.text)
                     await state.finish()
                     await create_admin(user_id=int_data)
-                    await bot.send_message(
-                        chat_id=message.from_user.id,
-                        text=f"\nАдминистратор\n"
+                    await delete_and_send_message(
+                        message.from_user.id,
+                        message.message_id,
+                        text_message=f"\nАдминистратор\n"
                         f"ID пользователя:  {int_data}\n",
-                        reply_markup=admin_kb_main_menu)
+                        reply_markup=admin_kb_main_menu
+                    )
         else:
-            await state.finish()
-            await bot.send_message(
-                chat_id=message.from_user.id,
-                text=f"Сотрдуник с ID "
+            await delete_and_send_message(
+                message.from_user.id,
+                message.message_id,
+                text_message="Сотрдуник с ID "
                 f"{message.text} не существует\n"
-                f"Создайте сотрудника в базе данных",
-                reply_markup=director_kb_main_menu)
+                "Проверьте корректность введенных данных",
+                reply_markup=admin_kb_main_menu
+            )
     except ValueError:
-        await state.finish()
-        await bot.send_message(chat_id=message.from_user.id,
-                               text=f"\nОшибка ID пользователя (Это не число)"
-                               f"\nID пользователя:  {message.text}\n"
-                               f"\nПопробуйте снова",
-                               reply_markup=admin_kb_main_menu)
+        await delete_and_send_message(
+                message.from_user.id,
+                message.message_id,
+                text_message=f"\nОшибка ID пользователя (Это не число)"
+                f"\nID пользователя:  {message.text}\n"
+                f"\nПопробуйте снова или отмените операцию в меню",
+                reply_markup=admin_kb_main_menu
+        )
 
 
 class FSM_create_user_role_director(StatesGroup):
@@ -116,12 +124,14 @@ class FSM_create_user_role_director(StatesGroup):
 @dp.callback_query_handler(text="make_user_director", state=None)
 async def load_user_role_director(callback_query: types.CallbackQuery):
     await FSM_create_user_role_director.user_id.set()
-    await bot.delete_message(chat_id=callback_query.from_user.id,
-                             message_id=callback_query.message.message_id)
-    await bot.send_message(chat_id=callback_query.from_user.id,
-                           text="Роль успешно выбрана.\n"
-                           "\nВведите user_id пользователя,"
-                           "которого хотите назначить директором:")
+    await delete_and_send_message(
+            callback_query.from_user.id,
+            callback_query.message.message_id,
+            text_message="Роль успешно выбрана.\n"
+                         "\nВведите user_id пользователя,"
+                         "которого хотите назначить директором "
+                         "или отмените оперцию в меню (/cancel)",
+            reply_markup=None)
 
 
 @dp.message_handler(state=FSM_create_user_role_director.user_id)
@@ -131,64 +141,57 @@ async def load_user_id_director(message: types.Message, state: FSMContext):
         if test_check_user:
             test = await check_bd_user_role(user_id=int(message.text))
             if test == 'admin':
-                await state.finish()
-                await bot.send_message(
-                    chat_id=message.from_user.id,
-                    text=f"\nОшибка ID пользователя уже используется"
+                await delete_and_send_message(
+                    message.from_user.id,
+                    message.message_id,
+                    text_message=f"\nОшибка ID пользователя уже используется"
                     f"\nЭто Админ\n"
                     f"\nID пользователя:  {message.text}\n"
                     f"\nПопробуйте снова",
-                    reply_markup=admin_kb_main_menu)
+                    reply_markup=None
+                )
             elif test == 'director':
-                await state.finish()
-                await bot.send_message(
-                    chat_id=message.from_user.id,
-                    text=f"\nОшибка ID пользователя уже используется"
+                await delete_and_send_message(
+                    message.from_user.id,
+                    message.message_id,
+                    text_message=f"\nОшибка ID пользователя уже используется"
                     f"\nЭто Директор\n"
                     f"\nID пользователя:  {message.text}\n"
                     f"\nПопробуйте снова",
-                    reply_markup=admin_kb_main_menu)
+                    reply_markup=None
+                )
             else:
                 async with state.proxy() as data:
                     data['id'] = message.text
-                    str_data = str(data['id'])
-                    int_data = int(str_data)
-                    if int_data < 0:
-                        await state.finish()
-                        await bot.send_message(
-                            chat_id=message.from_user.id,
-                            text=f"\nОшибка, ID пользователя "
-                            "не может быть отрицательным\n"
-                            f"ID пользователя:  {str_data}\n"
-                            f"\nПопробуйте снова",
-                            reply_markup=admin_kb_main_menu)
-                    else:
-                        async with state.proxy() as data:
-                            data['user_id'] = message.text
-                            str_data = str(data['user_id'])
-                            int_data = int(str_data)
-                            await state.finish()
-                            await create_director(user_id=int_data)
-                            await bot.send_message(
-                                chat_id=message.from_user.id,
-                                text=f"\nДиректор\n"
-                                f"ID пользователя:  {int_data}\n",
-                                reply_markup=admin_kb_main_menu)
+                    int_data = int(message.text)
+                    await state.finish()
+                    await create_director(user_id=int_data)
+                    await delete_and_send_message(
+                        message.from_user.id,
+                        message.message_id,
+                        text_message=f"\nДиректор\n"
+                        f"ID пользователя:  {int_data}\n",
+                        reply_markup=admin_kb_main_menu
+                    )
         else:
-            await state.finish()
-            await bot.send_message(
-                chat_id=message.from_user.id,
-                text=f"Сотрдуник с ID {message.text}"
-                " не существует\n"
-                f"Создайте сотрудника в базе данных",
-                reply_markup=director_kb_main_menu)
+            await delete_and_send_message(
+                message.from_user.id,
+                message.message_id,
+                text_message="Сотрдуник с ID "
+                f"{message.text} не существует\n"
+                "Проверьте корректность введенных данных "
+                "или отмените операцию в меню (/cancel)",
+                reply_markup=admin_kb_main_menu
+            )
     except ValueError:
-        await state.finish()
-        await bot.send_message(chat_id=message.from_user.id,
-                               text=f"Ошибка ID пользователя (Это не число)"
-                               f"\nID пользователя:  {message.text}\n"
-                               f"\nПопробуйте снова",
-                               reply_markup=admin_kb_main_menu)
+        await delete_and_send_message(
+                message.from_user.id,
+                message.message_id,
+                text_message=f"\nОшибка ID пользователя (Это не число)"
+                f"\nID пользователя:  {message.text}\n"
+                f"\nПопробуйте снова или отмените операцию в меню",
+                reply_markup=admin_kb_main_menu
+        )
 
 
 class FSM_delete_user_role(StatesGroup):
@@ -198,50 +201,58 @@ class FSM_delete_user_role(StatesGroup):
 @dp.callback_query_handler(text="remove_rights")
 async def remove_rights(callback_query: types.CallbackQuery):
     await FSM_delete_user_role.user_id.set()
-    await bot.delete_message(chat_id=callback_query.from_user.id,
-                             message_id=callback_query.message.message_id)
-    await bot.send_message(chat_id=callback_query.from_user.id,
-                           text="Введите ID записи для удаления.\n")
+    await delete_and_send_message(
+            callback_query.from_user.id,
+            callback_query.message.message_id,
+            text_message="Введите ID записи для удаления.\n",
+            reply_markup=None)
 
 
 @dp.message_handler(state=FSM_delete_user_role.user_id)
 async def delete_user_role(message: types.Message, state: FSMContext):
-    async with state.proxy() as data:
-        try:
-            if str.isdigit(message.text):
-                row = await check_bd_user_role(int(message.text))
-                if row is None:
-                    await state.finish()
-                    await bot.send_message(
-                        chat_id=message.from_user.id,
-                        text=f"ID пользователя: {message.text}\
-                        \nОшибка. Такого ID пользователя не существует\
-                        \nПопробуйте ещё раз",
-                        reply_markup=admin_kb_main_menu)
-                else:
-                    await delete_user(user_id=int(message.text))
-                    await state.finish()
-                    await bot.send_message(
-                        chat_id=message.from_user.id,
-                        text=f"ID пользователя: {id}\n"
-                        f"Роль пользователя {row}\n"
-                        "Удалена",
-                        reply_markup=admin_kb_main_menu)
+    try:
+        if message.text.isdigit():
+            row = await check_bd_user_role(int(message.text))
+            if row is []:
+                await delete_and_send_message(
+                    message.from_user.id,
+                    message.message_id,
+                    text_message=f"ID пользователя: {message.text}"
+                    "\nОшибка. Такого ID пользователя не существует\n"
+                    "Попробуйте ещё раз или "
+                    "отмените операцию в меню (/cancel)",
+                    reply_markup=None
+                )
             else:
+                await delete_user(user_id=int(message.text))
                 await state.finish()
-                await bot.send_message(
-                    chat_id=message.from_user.id,
-                    text=f"ID пользователя: {message.text}\n"
-                    "Ошибка. Нет такого ID пользователя\n"
-                    "\nПопробуйте ещё раз",
-                    reply_markup=admin_kb_main_menu)
-        except TypeError:
-            await state.finish()
-            await bot.send_message(chat_id=message.from_user.id,
-                                   text=f"ID пользователя: {message.text}\n"
-                                   "Ошибка. Нет такого ID пользователя\n"
-                                   "\nПопробуйте ещё раз",
-                                   reply_markup=admin_kb_main_menu)
+                await delete_and_send_message(
+                    message.from_user.id,
+                    message.message_id,
+                    text_message=f"ID пользователя: {message.text}\n"
+                    f"Роль пользователя {row}\n"
+                    "Удалена",
+                    reply_markup=admin_kb_main_menu
+                )
+        else:
+            await delete_and_send_message(
+                    message.from_user.id,
+                    message.message_id,
+                    text_message="Некорректный воод, используй только цифры"
+                    f"\nТвой ввод: {message.text}"
+                    "\nИспользуй только цифры",
+                    reply_markup=admin_kb_main_menu
+                )
+    except TypeError:
+        await state.finish()
+        await delete_and_send_message(
+                    message.from_user.id,
+                    message.message_id,
+                    text_message="Некорректный воод, используй только цифры"
+                    f"\nТвой ввод: {message.text}"
+                    "\nИспользуй только цифры",
+                    reply_markup=admin_kb_main_menu
+        )
 
 
 class FSM_create_shop(StatesGroup):
@@ -252,10 +263,13 @@ class FSM_create_shop(StatesGroup):
 @dp.callback_query_handler(text="add_shop_cr", state=None)
 async def add_shop_cr(callback_query: types.CallbackQuery):
     await FSM_create_shop.shop_id.set()
-    await bot.delete_message(chat_id=callback_query.from_user.id,
-                             message_id=callback_query.message.message_id)
-    await bot.send_message(chat_id=callback_query.from_user.id,
-                           text="Бренд CR, `\nВведите номер магазина \n")
+    await delete_and_send_message(
+            callback_query.from_user.id,
+            callback_query.message.message_id,
+            text_message="Бренд CR, "
+            "\nВведите номер магазина"
+            "\n или отмени операцию в меню (/cancel)",
+            reply_markup=admin_kb_main_menu)
 
 
 # @dp.message_handler(state=FSM_create_shop.shop_id)

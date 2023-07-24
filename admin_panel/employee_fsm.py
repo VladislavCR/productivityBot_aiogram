@@ -3,6 +3,7 @@ from config.bot_config import dp, bot
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
+from config.message_function import delete_and_send_message
 from keyboards.employee_kb import (employee_kb_registration,
                                    employee_kb_return,
                                    employee_registed_kb)
@@ -34,81 +35,108 @@ async def start_registration(callback_query: types.CallbackQuery):
     await bot.edit_message_text(chat_id=callback_query.from_user.id,
                                 message_id=callback_query.message.message_id,
                                 text="Начало регистрации!\n"
-                                "Введи свое имя:",
+                                "Введи свое имя без пробелов",
                                 reply_markup=employee_kb_return)
 
 
 @dp.message_handler(state=FSM_create_new_user.first_name)
 async def create_first_name(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
-        test_text = isinstance(message.text, str)
-        if test_text:
-            data['first_name'] = message.text
-            await FSM_create_new_user.next()
-            await bot.send_message(chat_id=message.from_user.id,
-                                   text=f"Имя: {message.text}\n"
-                                   "Введите свою фамилию",
-                                   reply_markup=employee_kb_return)
-        else:
+        try:
+            if message.text.isalpha():
+                data['first_name'] = message.text
+                await FSM_create_new_user.next()
+                await delete_and_send_message(
+                    message.from_user.id,
+                    message.message_id,
+                    text_message=f"Ваше имя: {message.text}\n"
+                    "Введите вашу фамилию",
+                    reply_markup=employee_kb_return)
+            else:
+                await delete_and_send_message(
+                    message.from_user.id,
+                    message.message_id,
+                    text_message=f"\nНеверное значение, используй только буквы"
+                                 f"\nВаш ввод:  {message.text}\n"
+                                 f"\nПопробуй ещё раз",
+                                 reply_markup=None)
+        except Exception:
             await state.finish()
-            await bot.send_message(chat_id=message.from_user.id,
-                                   text=f"\nОшибка вы прислали не строку\n"
-                                   f"Имя пользователя:  {message.text}\n"
-                                   f"\nПопробуйте ещё раз",
-                                   reply_markup=employee_kb_registration)
+            await bot.send_message(
+                chat_id=message.from_user.id,
+                text="Нужно начать регистрацию сначала",
+                reply_markup=employee_kb_registration)
 
 
 @dp.message_handler(state=FSM_create_new_user.last_name)
 async def create_last_name(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
-        test_text = isinstance(message.text, str)
-        if test_text:
-            data['last_name'] = message.text
-            await FSM_create_new_user.next()
-            await bot.send_message(chat_id=message.from_user.id,
-                                   text=f"Фамилия: {message.text}\n"
-                                   "Выбери свою должность",
-                                   reply_markup=choice_position_kb)
-        else:
+        try:
+            if message.text.isalpha():
+                data['last_name'] = message.text
+                await FSM_create_new_user.next()
+                await delete_and_send_message(
+                    message.from_user.id,
+                    message.message_id,
+                    text_message=f"Ваше имя: {message.text}\n"
+                    "Выбери свою должность",
+                    reply_markup=choice_position_kb)
+            else:
+                await delete_and_send_message(
+                    message.from_user.id,
+                    message.message_id,
+                    text_message=f"\nНеверное значение используй только буквы"
+                                 f"\nВаш ввод:  {message.text}\n"
+                                 f"\nПопробуй ещё раз",
+                                 reply_markup=None)
+        except Exception:
             await state.finish()
-            await bot.send_message(chat_id=message.from_user.id,
-                                   text=f"\nОшибка вы прислали не строку\n"
-                                   f"Фамилия пользователя:  {message.text}\n"
-                                   f"\nПопробуйте ещё раз",
-                                   reply_markup=employee_kb_registration)
+            await bot.send_message(
+                chat_id=message.from_user.id,
+                text="Нужно начать регистрацию сначала",
+                reply_markup=employee_kb_registration)
 
 
 @dp.message_handler(state=FSM_create_new_user.user_position)
 async def create_position(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
-        test_text = isinstance(message.text, str)
-        if test_text:
-            data['user_position'] = message.text
-            await FSM_create_new_user.next()
-            await bot.send_message(chat_id=message.from_user.id,
-                                   text=f"Твоя должность: {message.text}\n"
-                                   "Напиши номер своего магазина",
-                                   reply_markup=employee_kb_return)
-        else:
+        try:
+            if message.text.isalpha():
+                data['user_position'] = message.text
+                await FSM_create_new_user.next()
+                await delete_and_send_message(
+                    message.from_user.id,
+                    message.message_id,
+                    text_message=f"Твоя должность: {message.text}\n"
+                    "Напиши номер своего магазина",
+                    reply_markup=employee_kb_return)
+            else:
+                await delete_and_send_message(
+                    message.from_user.id,
+                    message.message_id,
+                    text_message=f"\nНеверное значение"
+                                 f"\nИспользуй всплывающую клавиатуру"
+                                 f"\nВаш ввод:  {message.text}\n"
+                                 f"\nПопробуй ещё раз",
+                                 reply_markup=None)
+        except Exception:
             await state.finish()
-            await bot.send_message(chat_id=message.from_user.id,
-                                   text=f"\nОшибка вы прислали не строку\n"
-                                   f"Твоя должость:  {message.text}\n"
-                                   f"\nПопробуйте ещё раз",
-                                   reply_markup=employee_kb_registration,
-                                   )
+            await bot.send_message(
+                chat_id=message.from_user.id,
+                text="Нужно начать регистрацию сначала",
+                reply_markup=employee_kb_registration)
 
 
 @dp.message_handler(state=FSM_create_new_user.shop_id)
 async def choice_shop(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
-        test_shop = str.isdigit(message.text)
-        if test_shop:
-            try:
-                check_bd = await check_shop(shop_id=int(message.text))
+        try:
+            if message.text.isdigit():
+                message_shop_id = int(message.text)
+                check_bd = await check_shop(shop_id=message_shop_id)
                 if check_bd:
                     async with state.proxy() as data:
-                        data['shop_id'] = int(message.text)
+                        data['shop_id'] = message_shop_id
                         await state.finish()
                         await create_user_bd(
                             user_id=message.from_user.id,
@@ -120,37 +148,40 @@ async def choice_shop(message: types.Message, state: FSMContext):
                         await bot.send_message(
                             chat_id=message.from_user.id,
                             text=f"\nВы зарегистрированы\n"
-                            f"ID пользователя:  {message.from_user.id}\n"
-                            f"ФИО пользователя:  {data['first_name']}"
-                            f"{data['last_name']}\n"
-                            f"Должность пользователя: "
-                            f"{data['user_position']}\n"
-                            f"Ваш магазин: {data['shop_id']}",
+                            f"\nID пользователя:  {message.from_user.id}"
+                            f"\nФИО пользователя:  {data['first_name']} "
+                            f"{data['last_name']}"
+                            f"\nДолжность пользователя: "
+                            f"{data['user_position']}"
+                            f"\nТвой магазин: {data['shop_id']}",
                             reply_markup=employee_registed_kb)
                 else:
-                    await state.finish()
-                    await bot.send_message(
-                        chat_id=message.from_user.id,
-                        text=f"\nОшибка, такого номера магазина нет в базе\n"
-                        f"Номер магазина:  {message.text}\n"
-                        f"\nПопробуйте ещё раз",
-                        reply_markup=employee_kb_registration)
-            except ValueError:
-                await state.finish()
-                await bot.send_message(
-                    chat_id=message.from_user.id,
-                    text=f"\nОшибка ID пользователя (Это не число)\n"
-                    f"ID пользователя:  {message.text}\n"
-                    f"\nПопробуйте снова",
-                    reply_markup=employee_kb_registration)
-        else:
+                    await delete_and_send_message(
+                        message.from_user.id,
+                        message.message_id,
+                        text_message=f"Такого номера магазина нет в базе"
+                        f"\nВаш ввод: {message.text}"
+                        f"\nПопробуй еще раз",
+                        reply_markup=None,
+                    )
+            else:
+                await delete_and_send_message(
+                    message.from_user.id,
+                    message.message_id,
+                    text_message=f"Неверное значение: {message.text}, "
+                    f"используй только цифры"
+                    f"\nПопробуй еще раз",
+                    reply_markup=None
+                )
+        except ValueError:
             await state.finish()
-            await bot.send_message(chat_id=message.from_user.id,
-                                   text=f"\nОшибка такого номера магазине нет\
-                                   \nНомер магазина:  {message.text}\
-                                   \nПопробуйте ещё раз",
-                                   reply_markup=employee_kb_registration,
-                                   )
+            await delete_and_send_message(
+                    message.from_user.id,
+                    message.message_id,
+                    text_message=f"Неверное значение: {message.text}, "
+                    f"используй только цифры"
+                    f"\nПопробуй еще раз",
+                    reply_markup=employee_kb_registration)
 
 
 @dp.callback_query_handler(text="show_personal_stat_week")
@@ -173,18 +204,17 @@ async def show_personal_stat_month(
 
         await bot.send_message(chat_id=callback_query.from_user.id,
                                text=text_message)
-        await bot.delete_message(chat_id=callback_query.from_user.id,
-                                 message_id=callback_query.message.message_id)
-        await bot.send_message(chat_id=callback_query.from_user.id,
-                               text="Ваша продуктивность по неделям\
-                               в сообщении",
-                               reply_markup=employee_registed_kb)
+        await delete_and_send_message(
+            callback_query.from_user.id,
+            callback_query.message.message_id,
+            text_message="Ваша продуктивность по неделям в прошлом сообщении",
+            reply_markup=employee_registed_kb)
     except Exception:
-        await bot.delete_message(chat_id=callback_query.from_user.id,
-                                 message_id=callback_query.message.message_id)
-        await bot.send_message(chat_id=callback_query.from_user.id,
-                               text="Что-то пошло не так :(",
-                               reply_markup=employee_registed_kb)
+        await delete_and_send_message(
+            callback_query.from_user.id,
+            callback_query.message.message_id,
+            text_message="Пока ты не участвовал в разборе поставки :(",
+            reply_markup=employee_registed_kb)
 
 
 @dp.callback_query_handler(text="show_personal_stat_day")
@@ -207,18 +237,18 @@ async def show_personal_stat_day(
 
         await bot.send_message(chat_id=callback_query.from_user.id,
                                text=text_message)
-        await bot.delete_message(chat_id=callback_query.from_user.id,
-                                 message_id=callback_query.message.message_id)
-        await bot.send_message(chat_id=callback_query.from_user.id,
-                               text="Ваша продуктивность по дням в сообщении",
-                               reply_markup=employee_registed_kb)
+        await delete_and_send_message(
+            callback_query.from_user.id,
+            callback_query.message.message_id,
+            text_message="Ваша продуктивность по дням в прошлом сообщении",
+            reply_markup=employee_registed_kb)
 
     except Exception:
-        await bot.delete_message(chat_id=callback_query.from_user.id,
-                                 message_id=callback_query.message.message_id)
-        await bot.send_message(chat_id=callback_query.from_user.id,
-                               text="Что-то пошло не так :(",
-                               reply_markup=employee_registed_kb)
+        await delete_and_send_message(
+            callback_query.from_user.id,
+            callback_query.message.message_id,
+            text_message="Пока ты не участвовал в разборе поставки :(",
+            reply_markup=employee_registed_kb)
 
 
 @dp.callback_query_handler(text="show_shop_stat")
@@ -231,31 +261,41 @@ async def show_shop_stat(
         shop_id=shop_id)
     text_message = ''
     try:
-        for week in list_by_weeks:
-            first_name = week['first_name']
-            last_name = week['last_name']
-            shop_id = week['shop_id']
-            user_prod = week['avg']
-            week = week['week_number']
-            text_message += f"{first_name} {last_name}:\
-                \n Неделя разбора: {week:.0f}\
-                \n Средняя продуктивность разбора {user_prod:.1f}\n\n"
+        if list_by_weeks != []:
+            for week in list_by_weeks:
+                first_name = week['first_name']
+                last_name = week['last_name']
+                shop_id = week['shop_id']
+                user_prod = week['avg']
+                week = week['week_number']
+                text_message += f"{first_name} {last_name}:\
+                    \n Неделя разбора: {week:.0f}\
+                    \n Средняя продуктивность разбора {user_prod:.1f}\n\n"
 
-        await bot.send_message(chat_id=callback_query.from_user.id,
-                               text=f"Магазин: {shop_id}\
-                                \n{text_message}")
-        await bot.delete_message(chat_id=callback_query.from_user.id,
-                                 message_id=callback_query.message.message_id)
-        await bot.send_message(chat_id=callback_query.from_user.id,
-                               text="Продуктивность сотрудников в сообщении",
-                               reply_markup=employee_registed_kb)
-
+            await bot.send_message(chat_id=callback_query.from_user.id,
+                                   text=f"Магазин: {shop_id}\
+                                    \n{text_message}")
+            await delete_and_send_message(
+                callback_query.from_user.id,
+                callback_query.message.message_id,
+                text_message="Продуктивность сотрудников в прошлом сообщении",
+                reply_markup=employee_registed_kb)
+        else:
+            await delete_and_send_message(
+                callback_query.from_user.id,
+                callback_query.message.message_id,
+                text_message="Нет данных для отображения, "
+                "магазин не использовал приложение."
+                "\nПопробуй позже",
+                reply_markup=employee_registed_kb)
     except Exception:
-        await bot.delete_message(chat_id=callback_query.from_user.id,
-                                 message_id=callback_query.message.message_id)
-        await bot.send_message(chat_id=callback_query.from_user.id,
-                               text="Что-то пошло не так :(",
-                               reply_markup=employee_registed_kb)
+        await delete_and_send_message(
+            callback_query.from_user.id,
+            callback_query.message.message_id,
+            text_message="Нет данных для отображения, "
+            "магазин не использовал приложение."
+            "\nПопробуй позже",
+            reply_markup=employee_registed_kb)
 
 
 @dp.callback_query_handler(text="show_top_in_brand")
@@ -280,15 +320,16 @@ async def show_top30_in_brand(
         await bot.send_message(chat_id=callback_query.from_user.id,
                                text=f"Неделя: {week_number:.0f}\
                                \n{text_message}")
-        await bot.delete_message(chat_id=callback_query.from_user.id,
-                                 message_id=callback_query.message.message_id)
-        await bot.send_message(chat_id=callback_query.from_user.id,
-                               text="Продуктивность сотрудников в сообщении",
-                               reply_markup=employee_registed_kb)
-
+        await delete_and_send_message(
+            callback_query.from_user.id,
+            callback_query.message.message_id,
+            text_message="ТОП 30 лучших сотрудниокв бренда"
+            " в прошлом сообщении!",
+            reply_markup=employee_registed_kb)
     except Exception:
-        await bot.delete_message(chat_id=callback_query.from_user.id,
-                                 message_id=callback_query.message.message_id)
-        await bot.send_message(chat_id=callback_query.from_user.id,
-                               text="Что-то пошло не так :(",
-                               reply_markup=employee_registed_kb)
+        await delete_and_send_message(
+            callback_query.from_user.id,
+            callback_query.message.message_id,
+            text_message="Нет сотрудников для отображения,"
+            "в бренде еще не использовали приложение",
+            reply_markup=employee_registed_kb)

@@ -39,7 +39,8 @@ async def create_user(user_id):
     conn = await asyncpg.connect(
         user=user, password=password, database=database, host=host
     )
-    await conn.execute("INSERT INTO users_role(user_id, user_role) VALUES($1, $2)",
+    await conn.execute("INSERT INTO users_role(user_id, user_role)\
+                       VALUES($1, $2)",
                        user_id,
                        'employee')
     await conn.close()

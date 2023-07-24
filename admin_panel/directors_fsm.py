@@ -5,6 +5,7 @@ from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.dispatcher import filters
 
 from config.bot_config import bot, dp
+from config.message_function import delete_and_send_message
 from keyboards.director_kb import (director_kb_main_menu,
                                    director_kb_operations,
                                    director_kb_stop_productivitty)
@@ -21,7 +22,6 @@ from database.productivity.check_avg_prod_users_in_shop import (
 )
 from database.productivity.check_prod_by_day import (
     check_avg_productivity_by_day)
-from admin_panel.callback_query import *
 
 
 @dp.callback_query_handler(text="view_list")
@@ -40,19 +40,22 @@ async def view_list(callback_query: types.CallbackQuery):
             \n{user_id} - ID сотрдуника,\
             \nДолжность: {user_position}\n\n"
             n += 1
+        await bot.send_message(
+            chat_id=callback_query.from_user.id,
+            text=text_message)
+        await delete_and_send_message(
+            callback_query.from_user.id,
+            callback_query.message.message_id,
+            text_message="Главное меню",
+            reply_markup=director_kb_main_menu)
 
-        await bot.send_message(chat_id=callback_query.from_user.id,
-                               text=text_message)
-        await bot.delete_message(chat_id=callback_query.from_user.id,
-                                 message_id=callback_query.message.message_id)
-        await bot.send_message(chat_id=callback_query.from_user.id,
-                               text="Главное меню!",
-                               reply_markup=director_kb_main_menu)
     except Exception:
-        await bot.delete_message(chat_id=callback_query.from_user.id,
-                                 message_id=callback_query.message.message_id)
-        await bot.send_message(chat_id=callback_query.from_user.id,
-                               text="Что-то пошло не так :(")
+        await delete_and_send_message(
+            callback_query.from_user.id,
+            callback_query.message.message_id,
+            text_message="Ошибка.Нет данных для отображения"
+            "\n Обратитесь к вашему РДП",
+            reply_markup=director_kb_main_menu)
 
 
 class FSM_remove_employee(StatesGroup):
@@ -62,42 +65,56 @@ class FSM_remove_employee(StatesGroup):
 @dp.callback_query_handler(text="remove_employee")
 async def remove_employee_cd(callback_query: types.CallbackQuery):
     await FSM_remove_employee.user_id.set()
-    await bot.delete_message(chat_id=callback_query.from_user.id,
-                             message_id=callback_query.message.message_id)
-    await bot.send_message(chat_id=callback_query.from_user.id,
-                           text="Введите ID пользователя для удаления.\n")
+    await delete_and_send_message(
+            callback_query.from_user.id,
+            callback_query.message.message_id,
+            text_message="Введите ID пользователя для удаления.",
+            reply_markup=director_kb_main_menu)
 
 
 @dp.message_handler(state=FSM_remove_employee.user_id)
 async def remove_employee(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         try:
-            row = await check_shop_from_user(int(message.text))
-            data['id'] = message.text
-            id = int(data['id'])
-            await delete_user(user_id=id)
-            await state.finish()
-            await bot.send_message(chat_id=message.from_user.id,
-                                   text=f"ID пользователя: {id}\n"
-                                   f"Роль пользователя {row}\n"
-                                   "Удалена",
-                                   reply_markup=director_kb_main_menu)
+            if message.text.isdigit():
+                shop_row = await check_shop_from_user(int(message.text))
+                data['id'] = message.text
+                id = int(data['id'])
+                await delete_user(user_id=id)
+                await state.finish()
+                await delete_and_send_message(
+                    message.from_user.id,
+                    message.message_id,
+                    text_message=f"ID пользователя: {id}\n"
+                    f"Удален из магазина {shop_row}",
+                    reply_markup=director_kb_main_menu
+                )
+            else:
+                await delete_and_send_message(
+                    message.from_user.id,
+                    message.message_id,
+                    text_message=f"Некорректный ввод: {message.text}"
+                    f"Используй только цифры",
+                    reply_markup=director_kb_main_menu
+                )
         except TypeError:
-            await state.finish()
-            await bot.send_message(chat_id=message.from_user.id,
-                                   text=f"ID пользователя: {message.text}\n"
-                                   "Ошибка. Нет такого ID пользователя\n"
-                                   "\nПопробуйте ещё раз",
-                                   reply_markup=director_kb_main_menu)
+            await delete_and_send_message(
+                message.from_user.id,
+                message.message_id,
+                text_message=f"Некорректный ввод: {message.text}"
+                f"Используй только цифры"
+                "\n Для отмены используй меню (/cancel)",
+                reply_markup=director_kb_main_menu
+            )
 
 
 @dp.callback_query_handler(text="type_of_operation")
 async def type_of_operation_cd(callback_query: types.CallbackQuery):
-    await bot.delete_message(chat_id=callback_query.from_user.id,
-                             message_id=callback_query.message.message_id)
-    await bot.send_message(chat_id=callback_query.from_user.id,
-                           text="Что хотите посчитать?",
-                           reply_markup=director_kb_operations)
+    await delete_and_send_message(
+            callback_query.from_user.id,
+            callback_query.message.message_id,
+            text_message="Что хотите посчитать?",
+            reply_markup=director_kb_main_menu)
 
 
 @dp.callback_query_handler(text="analysis_of_delivery")
@@ -118,11 +135,11 @@ async def analysis_of_delivery(callback_query: types.CallbackQuery):
                 callback_data=f"{i['user_id']}")
         )
     director_kb_view_employees.add(start_productivity_btn)
-    await bot.delete_message(chat_id=callback_query.from_user.id,
-                             message_id=callback_query.message.message_id)
-    await bot.send_message(chat_id=callback_query.from_user.id,
-                           text="Выберите нужных сотрудников для подсчета",
-                           reply_markup=director_kb_view_employees)
+    await delete_and_send_message(
+            callback_query.from_user.id,
+            callback_query.message.message_id,
+            text_message="Выберите нужных сотрудников для подсчета",
+            reply_markup=director_kb_view_employees)
 
 
 user_selected_options = []
@@ -137,21 +154,21 @@ async def choose_user(callback_query: types.CallbackQuery):
     if callback_query.data in user_selected_options:
         user_selected_options.remove(callback_query.data)
         user_full_name.remove(full_name)
-        await bot.delete_message(chat_id=callback_query.from_user.id,
-                                 message_id=callback_query.message.message_id)
-        await bot.send_message(chat_id=callback_query.from_user.id,
-                               text=f"✅ Выбранные сотрудники:"
-                               f"\n {user_full_name} ",
-                               reply_markup=director_kb_view_employees)
+        await delete_and_send_message(
+            callback_query.from_user.id,
+            callback_query.message.message_id,
+            text_message=f"✅ Выбранные сотрудники:"
+            f"\n {user_full_name} ",
+            reply_markup=director_kb_view_employees)
     else:
         user_selected_options.append(callback_query.data)
         user_full_name.append(full_name)
-        await bot.delete_message(chat_id=callback_query.from_user.id,
-                                 message_id=callback_query.message.message_id)
-        await bot.send_message(chat_id=callback_query.from_user.id,
-                               text=f"✅ Выбранные сотрудники:"
-                               f"\n {user_full_name}",
-                               reply_markup=director_kb_view_employees)
+        await delete_and_send_message(
+            callback_query.from_user.id,
+            callback_query.message.message_id,
+            text_message=f"✅ Выбранные сотрудники:"
+            f"\n {user_full_name} ",
+            reply_markup=director_kb_view_employees)
 
 
 class FSM_analyze_productivity(StatesGroup):
@@ -162,12 +179,12 @@ class FSM_analyze_productivity(StatesGroup):
 async def start_productivity(callback_query: types.CallbackQuery):
     global start_time
     start_time = datetime.now()
-    await bot.delete_message(chat_id=callback_query.from_user.id,
-                             message_id=callback_query.message.message_id)
-    await bot.send_message(chat_id=callback_query.from_user.id,
-                           text=f"Начался подсчет продуктивности,\
-                           \nВремя начала: {start_time}",
-                           reply_markup=director_kb_stop_productivitty)
+    await delete_and_send_message(
+            callback_query.from_user.id,
+            callback_query.message.message_id,
+            text_message=f"Начался подсчет продуктивности,\
+            \nВремя начала: {start_time}",
+            reply_markup=director_kb_stop_productivitty)
 
 
 @dp.callback_query_handler(text="stop_productivity")
@@ -177,13 +194,14 @@ async def stop_productivity(callback_query: types.CallbackQuery):
     stop_time = datetime.now()
     global time_spent
     time_spent = stop_time - start_time
-    await bot.delete_message(chat_id=callback_query.from_user.id,
-                             message_id=callback_query.message.message_id)
-    await bot.send_message(chat_id=callback_query.from_user.id,
-                           text=f"Вы закончили подсчет продуктивности,\
-                           \nВремя старта: {start_time}\
-                           \nВремя окончания: {stop_time}\
-                           \n\n Введите кол-во единиц поставки")
+    await delete_and_send_message(
+            callback_query.from_user.id,
+            callback_query.message.message_id,
+            text_message=f"Вы закончили подсчет продуктивности,\
+            \nВремя старта: {start_time}\
+            \nВремя окончания: {stop_time}\
+            \n\n Введите кол-во единиц поставки",
+            reply_markup=None)
 
 
 @dp.message_handler(state=FSM_analyze_productivity.number_of_units)
@@ -203,6 +221,7 @@ async def add_number_of_units(message: types.Message, state: FSMContext):
                                           num_of_units=units,
                                           productivity=productivity)
             await state.finish()
+            
             await bot.send_message(chat_id=message.from_user.id,
                                    text=f"Расчет продуктивности окончен \
                                     \nОбщее затраченное время: {total_time} ч.\
@@ -230,17 +249,18 @@ async def check_shop_productivity(callback_query: types.CallbackQuery):
 
         await bot.send_message(chat_id=callback_query.from_user.id,
                                text=text_message)
-        await bot.delete_message(chat_id=callback_query.from_user.id,
-                                 message_id=callback_query.message.message_id)
-        await bot.send_message(chat_id=callback_query.from_user.id,
-                               text="Главное меню!",
-                               reply_markup=director_kb_main_menu)
+        await delete_and_send_message(
+            callback_query.from_user.id,
+            callback_query.message.message_id,
+            text_message="Нет данных для отображения, "
+            "\nобратись к своему РДП",
+            reply_markup=director_kb_main_menu)
     except Exception:
-        await bot.delete_message(chat_id=callback_query.from_user.id,
-                                 message_id=callback_query.message.message_id)
-        await bot.send_message(chat_id=callback_query.from_user.id,
-                               text="Что-то пошло не так :(",
-                               reply_markup=director_kb_main_menu)
+        await delete_and_send_message(
+            callback_query.from_user.id,
+            callback_query.message.message_id,
+            text_message="Главное меню!",
+            reply_markup=director_kb_main_menu)
 
 
 @dp.callback_query_handler(text="raiting_inside_store")
@@ -266,17 +286,18 @@ async def check_employees_productivity_in_shop(
 
         await bot.send_message(chat_id=callback_query.from_user.id,
                                text=text_message)
-        await bot.delete_message(chat_id=callback_query.from_user.id,
-                                 message_id=callback_query.message.message_id)
-        await bot.send_message(chat_id=callback_query.from_user.id,
-                               text="Главное меню!",
-                               reply_markup=director_kb_main_menu)
+        await delete_and_send_message(
+            callback_query.from_user.id,
+            callback_query.message.message_id,
+            text_message="Главное меню!",
+            reply_markup=director_kb_main_menu)
     except Exception:
-        await bot.delete_message(chat_id=callback_query.from_user.id,
-                                 message_id=callback_query.message.message_id)
-        await bot.send_message(chat_id=callback_query.from_user.id,
-                               text="Что-то пошло не так :(",
-                               reply_markup=director_kb_main_menu)
+        await delete_and_send_message(
+            callback_query.from_user.id,
+            callback_query.message.message_id,
+            text_message="Нет данных для отображения, "
+            "\nобратись к своему РДП",
+            reply_markup=director_kb_main_menu)
 
 
 @dp.callback_query_handler(text="statistic_by_day")
@@ -297,14 +318,15 @@ async def check_productivity_by_days(
 
         await bot.send_message(chat_id=callback_query.from_user.id,
                                text=text_message)
-        await bot.delete_message(chat_id=callback_query.from_user.id,
-                                 message_id=callback_query.message.message_id)
-        await bot.send_message(chat_id=callback_query.from_user.id,
-                               text="Главное меню!",
-                               reply_markup=director_kb_main_menu)
+        await delete_and_send_message(
+            callback_query.from_user.id,
+            callback_query.message.message_id,
+            text_message="Главное меню!",
+            reply_markup=director_kb_main_menu)
     except Exception:
-        await bot.delete_message(chat_id=callback_query.from_user.id,
-                                 message_id=callback_query.message.message_id)
-        await bot.send_message(chat_id=callback_query.from_user.id,
-                               text="Что-то пошло не так :(",
-                               reply_markup=director_kb_main_menu)
+        await delete_and_send_message(
+            callback_query.from_user.id,
+            callback_query.message.message_id,
+            text_message="Нет данных для отображения, "
+            "\nобратись к своему РДП",
+            reply_markup=director_kb_main_menu)
