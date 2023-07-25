@@ -56,7 +56,7 @@ revaluation_of_salesfloor = types.InlineKeyboardButton(
     callback_data="revaluation_of_salesfloor"
 )
 back_to_main_menu = types.InlineKeyboardButton(
-    text="СКОРО.Переоценка торгового зала",
+    text="Вернуться в главное меню",
     callback_data="dir_back_to_main_menu"
 )
 
@@ -66,13 +66,3 @@ director_kb_operations.add(analysis_of_delivery,
                            transfer_to_warehouse,
                            revaluation_of_salesfloor,
                            back_to_main_menu)
-
-
-director_kb_stop_productivitty = types.InlineKeyboardMarkup()
-
-stop_button_prod = types.InlineKeyboardButton(
-    text="Остановить подсчет продуктивности",
-    callback_data="stop_productivity"
-)
-
-director_kb_stop_productivitty.add(stop_button_prod)

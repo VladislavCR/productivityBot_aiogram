@@ -7,8 +7,7 @@ from aiogram.dispatcher import filters
 from config.bot_config import bot, dp
 from config.message_function import delete_and_send_message
 from keyboards.director_kb import (director_kb_main_menu,
-                                   director_kb_operations,
-                                   director_kb_stop_productivitty)
+                                   director_kb_operations)
 from database.users.view_users import (get_employees,
                                        get_shop,
                                        get_employee_from_users)
@@ -114,7 +113,7 @@ async def type_of_operation_cd(callback_query: types.CallbackQuery):
             callback_query.from_user.id,
             callback_query.message.message_id,
             text_message="Что хотите посчитать?",
-            reply_markup=director_kb_main_menu)
+            reply_markup=director_kb_operations)
 
 
 @dp.callback_query_handler(text="analysis_of_delivery")
@@ -123,10 +122,14 @@ async def analysis_of_delivery(callback_query: types.CallbackQuery):
     shop_id = await get_shop(user_id=user_id)
     list_employees = await get_employees(shop_id=shop_id[0])
     global director_kb_view_employees
-    director_kb_view_employees = types.InlineKeyboardMarkup(row_width=2)
+    director_kb_view_employees = types.InlineKeyboardMarkup(row_width=1)
     start_productivity_btn = types.InlineKeyboardButton(
         text="Начать подсчет продуктивности",
         callback_data="start_productivity",
+    )
+    stop_button_prod = types.InlineKeyboardButton(
+        text="Остановить подсчет продуктивности",
+        callback_data="stop_productivity"
     )
     for i in list_employees:
         director_kb_view_employees.add(
@@ -134,7 +137,7 @@ async def analysis_of_delivery(callback_query: types.CallbackQuery):
                 text=f"{i['first_name']} {i['last_name']}",
                 callback_data=f"{i['user_id']}")
         )
-    director_kb_view_employees.add(start_productivity_btn)
+    director_kb_view_employees.add(start_productivity_btn, stop_button_prod)
     await delete_and_send_message(
             callback_query.from_user.id,
             callback_query.message.message_id,
@@ -142,49 +145,57 @@ async def analysis_of_delivery(callback_query: types.CallbackQuery):
             reply_markup=director_kb_view_employees)
 
 
-user_selected_options = []
-user_full_name = []
-
-
-@dp.callback_query_handler(filters.Regexp(regexp='\d+'))
-async def choose_user(callback_query: types.CallbackQuery):
-    out_name_user = await get_employee_from_users(
-        user_id=int(callback_query.data))
-    full_name = out_name_user['first_name'] + ' ' + out_name_user['last_name']
-    if callback_query.data in user_selected_options:
-        user_selected_options.remove(callback_query.data)
-        user_full_name.remove(full_name)
-        await delete_and_send_message(
-            callback_query.from_user.id,
-            callback_query.message.message_id,
-            text_message=f"✅ Выбранные сотрудники:"
-            f"\n {user_full_name} ",
-            reply_markup=director_kb_view_employees)
-    else:
-        user_selected_options.append(callback_query.data)
-        user_full_name.append(full_name)
-        await delete_and_send_message(
-            callback_query.from_user.id,
-            callback_query.message.message_id,
-            text_message=f"✅ Выбранные сотрудники:"
-            f"\n {user_full_name} ",
-            reply_markup=director_kb_view_employees)
-
-
 class FSM_analyze_productivity(StatesGroup):
     number_of_units = State()
 
 
-@dp.callback_query_handler(text="start_productivity")
-async def start_productivity(callback_query: types.CallbackQuery):
-    global start_time
-    start_time = datetime.now()
-    await delete_and_send_message(
+@dp.callback_query_handler(
+        filters.Regexp(regexp='^[0-9]+$'),
+        state=None
+)
+async def choose_user(callback_query: types.CallbackQuery, state: FSMContext):
+    out_name_user = await get_employee_from_users(
+        user_id=int(callback_query.data))
+    full_name = out_name_user['first_name'] + ' ' + out_name_user['last_name']
+    async with state.proxy() as data:
+        if callback_query.data in data.keys():
+            del data[callback_query.data]
+            await delete_and_send_message(
+                callback_query.from_user.id,
+                callback_query.message.message_id,
+                text_message=f"✅ Выбранные сотрудники:"
+                f"\n {list(data.values())} ",
+                reply_markup=director_kb_view_employees)
+        else:
+            data.setdefault(callback_query.data, []).append(full_name)
+            await delete_and_send_message(
+                callback_query.from_user.id,
+                callback_query.message.message_id,
+                text_message=f"✅ Выбранные сотрудники:"
+                f"\n {list(data.values())} ",
+                reply_markup=director_kb_view_employees)
+
+
+@dp.callback_query_handler(
+        text="start_productivity",
+        state=None
+)
+async def start_productivity(
+    callback_query: types.CallbackQuery,
+    state: FSMContext
+):
+    async with state.proxy() as data:
+        start_time = datetime.now().strftime("%X-%W")
+        print(start_time)
+        for key in data:
+            data.setdefault(key, []).extend([start_time])
+        data['start_time'] = start_time
+        await delete_and_send_message(
             callback_query.from_user.id,
             callback_query.message.message_id,
             text_message=f"Начался подсчет продуктивности,\
             \nВремя начала: {start_time}",
-            reply_markup=director_kb_stop_productivitty)
+            reply_markup=director_kb_view_employees)
 
 
 @dp.callback_query_handler(text="stop_productivity")
@@ -221,7 +232,6 @@ async def add_number_of_units(message: types.Message, state: FSMContext):
                                           num_of_units=units,
                                           productivity=productivity)
             await state.finish()
-            
             await bot.send_message(chat_id=message.from_user.id,
                                    text=f"Расчет продуктивности окончен \
                                     \nОбщее затраченное время: {total_time} ч.\
@@ -252,14 +262,14 @@ async def check_shop_productivity(callback_query: types.CallbackQuery):
         await delete_and_send_message(
             callback_query.from_user.id,
             callback_query.message.message_id,
-            text_message="Нет данных для отображения, "
-            "\nобратись к своему РДП",
+            text_message="Главное меню!",
             reply_markup=director_kb_main_menu)
     except Exception:
         await delete_and_send_message(
             callback_query.from_user.id,
             callback_query.message.message_id,
-            text_message="Главное меню!",
+            text_message="Нет данных для отображения, "
+            "\nобратись к своему РДП",
             reply_markup=director_kb_main_menu)
 
 

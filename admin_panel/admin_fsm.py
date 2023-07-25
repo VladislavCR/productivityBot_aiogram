@@ -1,5 +1,5 @@
 from aiogram import types
-from config.bot_config import dp, bot
+from config.bot_config import dp
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
@@ -9,7 +9,7 @@ from keyboards.director_kb import director_kb_main_menu
 from database.user_role.check_role import check_bd_user_role, check_user
 from database.user_role.create_role import create_admin, create_director
 from database.users.delete_user import delete_user
-from database.shops.check_shop import check_shop
+# from database.shops.check_shop import check_shop
 from admin_panel.callback_query import *
 
 
@@ -236,22 +236,22 @@ async def delete_user_role(message: types.Message, state: FSMContext):
                 )
         else:
             await delete_and_send_message(
-                    message.from_user.id,
-                    message.message_id,
-                    text_message="Некорректный воод, используй только цифры"
-                    f"\nТвой ввод: {message.text}"
-                    "\nИспользуй только цифры",
-                    reply_markup=admin_kb_main_menu
-                )
+                message.from_user.id,
+                message.message_id,
+                text_message="Некорректный воод, используй только цифры"
+                f"\nТвой ввод: {message.text}"
+                "\nИспользуй только цифры",
+                reply_markup=admin_kb_main_menu
+            )
     except TypeError:
         await state.finish()
         await delete_and_send_message(
-                    message.from_user.id,
-                    message.message_id,
-                    text_message="Некорректный воод, используй только цифры"
-                    f"\nТвой ввод: {message.text}"
-                    "\nИспользуй только цифры",
-                    reply_markup=admin_kb_main_menu
+                message.from_user.id,
+                message.message_id,
+                text_message="Некорректный воод, используй только цифры"
+                f"\nТвой ввод: {message.text}"
+                "\nИспользуй только цифры",
+                reply_markup=admin_kb_main_menu
         )
 
 
